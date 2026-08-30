@@ -6,9 +6,30 @@ import type { NavLink } from '@/types';
  * including the JSON-LD structured data and the sitemap.
  */
 
-const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
+/**
+ * Resolves the canonical origin, in order of trust:
+ *
+ * 1. `NEXT_PUBLIC_SITE_URL` — set this in production; it is the only value
+ *    that knows about a custom domain.
+ * 2. Vercel's own production URL — a safety net so that forgetting step 1
+ *    still yields a real origin rather than publishing canonical tags, a
+ *    sitemap and OG image URLs that all point at localhost.
+ * 3. localhost, for development.
+ *
+ * The Vercel variables are server-only, which is fine: `siteUrl` is read
+ * exclusively from server components, metadata, the sitemap and robots.
+ */
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL;
+  if (explicit) return explicit;
 
-export const siteUrl = rawSiteUrl.replace(/\/$/, '');
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  if (vercelHost) return `https://${vercelHost}`;
+
+  return 'http://localhost:3000';
+}
+
+export const siteUrl = resolveSiteUrl().replace(/\/+$/, '');
 
 export const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '919540151718';
 

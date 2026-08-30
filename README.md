@@ -176,7 +176,9 @@ fast for Indian visitors, and security headers are set in [`next.config.mjs`](ne
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no       | Google Search Console token                              |
 
 `NEXT_PUBLIC_SITE_URL` must be set correctly in production — canonical tags, the sitemap, `robots.txt`
-and OG image URLs are all built from it.
+and OG image URLs are all built from it. If it is missing, the site falls back to Vercel's own
+production URL rather than to localhost, so a forgotten variable degrades instead of breaking; set it
+anyway once a custom domain is attached, because only this value knows the real domain.
 
 ### Custom domain
 
