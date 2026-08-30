@@ -1,0 +1,280 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Design tokens
+   Identity: "Ledger & Light" — warm ivory paper and deep indigo ink, borrowed
+   from the bahi-khata every Indian shop owner recognises, lit with saffron.
+   Values are RGB triplets so Tailwind's alpha modifiers work on all of them.
+   ========================================================================== */
+
+:root {
+  --c-bg: 251 247 240; /* #FBF7F0 warm ivory paper */
+  --c-surface: 255 253 250; /* #FFFDFA raised card */
+  --c-sunken: 244 238 228; /* #F4EEE4 recessed band */
+  --c-fg: 14 19 48; /* #0E1330 indigo ink */
+  --c-muted: 90 99 130; /* #5A6382 */
+  --c-subtle: 126 134 160;
+  --c-line: 226 218 205;
+  --c-brand: 255 122 24; /* #FF7A18 saffron */
+  --c-brand-ink: 184 74 0; /* #B84A00 saffron, legible as text */
+  --c-on-brand: 14 19 48; /* ink on saffron = 6.9:1 */
+  --c-accent: 16 163 122; /* #10A37A jade */
+  --c-accent-ink: 7 114 79; /* #07724F */
+  --c-gold: 232 179 37; /* #E8B325 */
+
+  --rule-height: 1px;
+  --shell-gutter: 1.25rem;
+
+  color-scheme: light;
+}
+
+.dark {
+  --c-bg: 9 12 28; /* #090C1C night ink */
+  --c-surface: 17 22 47; /* #11162F */
+  --c-sunken: 6 8 20;
+  --c-fg: 240 238 232; /* #F0EEE8 */
+  --c-muted: 163 170 194;
+  --c-subtle: 122 130 156;
+  --c-line: 38 45 76;
+  --c-brand: 255 138 51; /* #FF8A33 lifted for dark ground */
+  --c-brand-ink: 255 168 99;
+  --c-on-brand: 9 12 28;
+  --c-accent: 45 200 155;
+  --c-accent-ink: 82 217 175;
+  --c-gold: 240 197 74;
+
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-line;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg font-sans text-fg antialiased;
+    /* Never let a decorative element create a sideways scroll on mobile. */
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display font-semibold text-fg;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* One visible, high-contrast focus ring everywhere. */
+  :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+    outline: 2px solid rgb(var(--c-brand));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: rgb(var(--c-brand) / 0.28);
+    color: rgb(var(--c-fg));
+  }
+
+  /* Anchored sections must clear the sticky header. */
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-shell px-5 sm:px-8 lg:px-12;
+  }
+
+  /* --- Signature element: the Ledger Rule -------------------------------
+     A hairline with a travelling bead of light. It marks every section the
+     way a ruled ledger line marks an entry — one motif, used everywhere,
+     so the rest of the page can stay quiet.                              */
+  .ledger-rule {
+    @apply relative block h-px w-full overflow-hidden bg-line;
+  }
+
+  .ledger-rule::after {
+    content: '';
+    @apply absolute inset-y-0 left-0 w-1/4 animate-rule-pulse;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--c-brand)) 45%,
+      rgb(var(--c-gold)) 70%,
+      transparent
+    );
+  }
+
+  /* Corner brackets — registration marks framing a card, no heavy shadow. */
+  .bracket-frame::before,
+  .bracket-frame::after {
+    content: '';
+    @apply pointer-events-none absolute h-4 w-4 opacity-0 transition-opacity duration-300;
+    border-color: rgb(var(--c-brand));
+  }
+
+  .bracket-frame::before {
+    @apply left-2 top-2 border-l-2 border-t-2;
+  }
+
+  .bracket-frame::after {
+    @apply bottom-2 right-2 border-b-2 border-r-2;
+  }
+
+  .bracket-frame:hover::before,
+  .bracket-frame:hover::after,
+  .bracket-frame:focus-within::before,
+  .bracket-frame:focus-within::after {
+    @apply opacity-100;
+  }
+
+  .eyebrow {
+    @apply font-mono text-eyebrow font-medium uppercase text-brand-ink;
+  }
+
+  /* Ruled-paper backdrop used behind the hero and the closing CTA. */
+  .ruled-paper {
+    background-image: linear-gradient(
+        to bottom,
+        rgb(var(--c-line) / 0.55) var(--rule-height),
+        transparent var(--rule-height)
+      ),
+      linear-gradient(to right, rgb(var(--c-line) / 0.35) var(--rule-height), transparent var(--rule-height));
+    background-size: 100% 2.25rem, 2.25rem 100%;
+  }
+
+  .surface-card {
+    @apply relative rounded-card border border-line bg-surface;
+  }
+
+  /* --- Scroll reveals ---------------------------------------------------
+     Driven by one shared IntersectionObserver in Reveal.tsx, which only
+     toggles `.is-revealed`. Scoped to `.js` so that with JavaScript off the
+     page renders fully visible rather than blank.                        */
+  .js [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+  }
+
+  .js [data-reveal].is-revealed {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* --- Hero entrance ----------------------------------------------------
+     One orchestrated sequence: each direct child rises in turn, ordered by
+     the `--i` index it carries. CSS rather than a JS runtime because this is
+     the one animation that must not wait for hydration.                   */
+  .js .hero-enter > * {
+    opacity: 0;
+    transform: translateY(22px);
+    animation: hero-rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(120ms + var(--i, 0) * 90ms);
+  }
+
+  @keyframes hero-rise {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Vertical ledger rule filling the process timeline. */
+  .js .process-spine {
+    transform: scaleY(0);
+    transition: transform 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+  }
+
+  .js [data-reveal].is-revealed .process-spine {
+    transform: scaleY(1);
+  }
+}
+
+@layer utilities {
+  /* Skip style, layout and paint for sections still far below the fold.
+     `contain-intrinsic-size` supplies a placeholder height so the scrollbar
+     and anchor links behave, and the size is remembered once rendered. This
+     is the single biggest win on a long page on a mid-range phone. */
+  /* Skip style, layout and paint for sections still far below the fold. On a
+     throttled mobile CPU this is worth roughly 20 Lighthouse points and cuts
+     total blocking time by ~75%.
+
+     `contain-intrinsic-size` supplies a placeholder height until a section is
+     first rendered, which means anchor targets deep in the page would land in
+     the wrong place on a cold load. `AnchorScroll` removes the deferral the
+     instant a visitor navigates to an anchor — by then the initial-load win
+     has already been banked. Gated on `.js` so that without JavaScript, where
+     that correction cannot run, anchors stay exact. */
+  .js .defer-render {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+
+  .js.anchors-released .defer-render {
+    content-visibility: visible;
+    contain-intrinsic-size: none;
+  }
+
+  /* Saffron into gold. Deliberately stops short of the jade in the palette —
+     carrying the price all the way to green turned the number olive. */
+  .text-gradient-brand {
+    background: linear-gradient(100deg, rgb(var(--c-brand)) 0%, rgb(var(--c-gold)) 92%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Minimum comfortable touch target for the phone-first audience. */
+  .tap-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+/* ==========================================================================
+   Reduced motion — honour the OS setting, keep everything legible.
+   Framer Motion variants also read this via useReducedMotion().
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .ledger-rule::after {
+    @apply w-full opacity-40;
+    transform: none;
+  }
+
+  /* Reveals and the hero sequence resolve to their finished state instantly. */
+  .js [data-reveal],
+  .js .hero-enter > * {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}

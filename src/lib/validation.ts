@@ -1,0 +1,86 @@
+export type ContactValues = {
+  name: string;
+  phone: string;
+  businessType: string;
+  requirement: string;
+};
+
+export type ContactErrors = Partial<Record<keyof ContactValues, string>>;
+
+/**
+ * Strips control characters and angle brackets, collapses runs of whitespace,
+ * and caps length. Applied to every field before the value leaves the browser,
+ * so nothing a visitor types can be smuggled into a message or a mailto link.
+ */
+export function sanitize(value: string, maxLength = 1200): string {
+  let out = '';
+  for (const char of value) {
+    const code = char.codePointAt(0) ?? 0;
+    const isControl = code < 32 || code === 127;
+    if (isControl) {
+      out += ' ';
+    } else if (char !== '<' && char !== '>') {
+      out += char;
+    }
+  }
+
+  return out.replace(/\s{2,}/g, ' ').trim().slice(0, maxLength);
+}
+
+/** Accepts 10-digit Indian mobile numbers, with or without +91 and spacing. */
+export function normalisePhone(value: string): string | null {
+  const digits = value.replace(/\D/g, '');
+  const local = digits.startsWith('91') && digits.length === 12 ? digits.slice(2) : digits;
+  if (local.length !== 10) return null;
+  if (!/^[6-9]/.test(local)) return null;
+  return local;
+}
+
+/** Field-level validation with messages written the way a person would say them. */
+export function validateContact(values: ContactValues): ContactErrors {
+  const errors: ContactErrors = {};
+
+  const name = values.name.trim();
+  if (name.length === 0) {
+    errors.name = 'Please tell me your name.';
+  } else if (name.length < 2) {
+    errors.name = 'That looks a bit short — please enter your full name.';
+  } else if (name.length > 80) {
+    errors.name = 'Please keep your name under 80 characters.';
+  }
+
+  if (values.phone.trim().length === 0) {
+    errors.phone = 'I need a phone number to reply to you.';
+  } else if (!normalisePhone(values.phone)) {
+    errors.phone = 'Please enter a 10-digit Indian mobile number, like 98765 43210.';
+  }
+
+  if (values.businessType.trim().length === 0) {
+    errors.businessType = 'Please choose what kind of business you run.';
+  }
+
+  const requirement = values.requirement.trim();
+  if (requirement.length === 0) {
+    errors.requirement = 'Tell me in one or two lines what you need.';
+  } else if (requirement.length < 10) {
+    errors.requirement = 'A little more detail helps me give you an accurate answer.';
+  } else if (requirement.length > 1200) {
+    errors.requirement = 'Please keep this under 1200 characters.';
+  }
+
+  return errors;
+}
+
+/** Business types offered in the contact form's select. */
+export const businessTypes = [
+  'Shop / Retail store',
+  'Wholesale / Trading',
+  'Manufacturing',
+  'Clinic / Healthcare',
+  'Coaching / Education',
+  'Restaurant / Food',
+  'Real estate / Construction',
+  'Salon / Services',
+  'Online / D2C brand',
+  'Other',
+] as const;

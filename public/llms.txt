@@ -1,0 +1,55 @@
+# Jatin Mangla — Web & Mobile App Developer, Delhi, India
+
+> Freelance developer building websites, mobile apps, billing and inventory systems, and custom business software for Indian small and medium businesses. Websites and mobile applications start at ₹4,999.
+
+Contact: +91 95401 51718 · jatinmangla123@gmail.com · WhatsApp preferred
+Location: Delhi, India. Works with businesses across India. Speaks English and Hindi.
+Availability: Mon–Sat, 10am – 8pm IST. Replies within a few hours.
+
+## Who he is
+
+Jatin Mangla is a frontend-specialised web developer with 5+ years of professional experience who
+delivers complete web and mobile products. He currently works at AAPNA Infotech, an enterprise
+fintech software firm, and takes on freelance projects for small businesses directly.
+
+Verified track record:
+
+- Builds and maintains the frontend of Mera Monitor, an enterprise fintech platform with 10,500+ active users.
+- Reduced page load times by 30% through performance profiling, Webpack tuning and code splitting.
+- Engineered 50+ reusable, accessible UI components in React, TypeScript and Tailwind CSS.
+- Implemented enterprise-grade authentication (Microsoft MSAL and Google OAuth SSO) for 10,500+ users.
+- Built real-time analytics dashboards with ApexCharts, React Query, Redux, REST APIs and WebSockets.
+- Delivered 95% cross-device compatibility for a low-memory set-top-box application.
+- Won the Code Craftsman Award and the Performance Excellence Award at AAPNA Infotech.
+- MCA (Master of Computer Applications), Galgotias University.
+- Certified in AI & Prompt Engineering (DeepLearning.AI) and Claude API Development.
+
+## Services
+
+- **Business Website** — a fast, mobile-first site so customers find the business on Google and message it directly.
+- **Mobile Application** — one app that runs on both Android and iPhone, including store submission.
+- **Client & CRM Management** — every customer, enquiry and follow-up in one place instead of a diary or WhatsApp.
+- **Inventory & Billing System** — GST-ready invoices, live stock counts, low-stock alerts and sales reports.
+- **Custom Business Software** — internal tools built around how a specific business already works.
+- **AI-Powered Features** — customer chat assistants, document and invoice reading, smart search over a business's own records.
+
+## Pricing
+
+- **Starter — ₹4,999 one-time.** Complete one-page website, mobile-friendly, WhatsApp and call buttons, Google search setup, SSL, enquiry form, 30 days support. Ready in 5–7 days.
+- **Business — ₹14,999 one-time.** Up to 8 pages, catalogue with search, self-service admin panel, analytics, blog, 60 days support. Ready in 2–3 weeks.
+- **Complete Custom — from ₹39,999.** Billing, inventory or CRM systems, mobile apps, multiple staff logins, reports, integrations, AI features, 90 days support. Typically 4–10 weeks.
+
+Payment is 50% to start and 50% on delivery. Every project gets a written fixed quote before work
+begins. Clients own the code, the content and the domain. There are no hidden charges.
+
+## Technology
+
+React, Next.js, TypeScript, JavaScript (ES6+), Tailwind CSS, SCSS, Material UI, Redux (Thunk/Saga),
+Zustand, React Query, REST APIs, WebSockets, Node.js, Jest, React Testing Library, Git, CI/CD,
+Vercel, Netlify.
+
+## Links
+
+- Website: https://www.jatinmangla.dev
+- LinkedIn: https://www.linkedin.com/in/jatin-mangla-22435060
+- GitHub: https://github.com/JatinMangla
