@@ -67,6 +67,6 @@ export const config = {
   // Skip Next internals, the API itself, and the generated text/image routes,
   // which already serve their own content types.
   matcher: [
-    '/((?!_next/|api/|favicon|icon|apple-icon|opengraph-image|twitter-image|robots\\.txt|sitemap\\.xml|llms\\.txt|llms-full\\.txt).*)',
+    '/((?!_next/|api/|favicon|icon|apple-icon|opengraph-image|twitter-image|manifest\\.webmanifest|robots\\.txt|sitemap\\.xml|llms\\.txt|llms-full\\.txt).*)',
   ],
 };
