@@ -2,6 +2,7 @@ import { ArrowRight, BadgeCheck, Clock, MessageCircle, ShieldCheck } from 'lucid
 import type { CSSProperties } from 'react';
 import { ButtonLink } from '@/components/ui/Button';
 import { LedgerRule } from '@/components/ui/LedgerRule';
+import { SplitPhrase, SplitWords } from '@/components/ui/SplitWords';
 import { defaultEnquiry, site, whatsappLink } from '@/data/site';
 import { HeroBackdrop } from './HeroBackdrop';
 
@@ -30,7 +31,7 @@ export function Hero() {
 
       <div className="hero-enter shell relative flex flex-col items-start gap-7">
         <div style={step(0)} className="flex flex-wrap items-center gap-3">
-          <span className="inline-flex items-center gap-2 rounded-pill border border-line bg-surface/80 px-3.5 py-1.5 font-mono text-eyebrow uppercase text-muted backdrop-blur">
+          <span className="aurora-ring inline-flex items-center gap-2 rounded-pill border border-line bg-surface/80 px-3.5 py-1.5 font-mono text-eyebrow uppercase text-muted backdrop-blur">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-accent" />
@@ -42,9 +43,13 @@ export function Hero() {
           </span>
         </div>
 
+        {/* The headline assembles word by word. The price keeps its gradient
+            unbroken, so it rises as one piece at the end of the sequence. */}
         <h1 style={step(1)} className="max-w-[16ch] text-display-xl">
-          A website or app for your business.{' '}
-          <span className="text-gradient-brand">Starting at {site.startingPrice}.</span>
+          <SplitWords start={0}>A website or app for your business.</SplitWords>{' '}
+          <SplitPhrase start={7} className="text-gradient-brand">
+            Starting at {site.startingPrice}.
+          </SplitPhrase>
         </h1>
 
         <div style={step(2)} className="w-full max-w-md">
@@ -63,7 +68,7 @@ export function Hero() {
             target="_blank"
             rel="noopener noreferrer"
             size="lg"
-            className="w-full sm:w-auto"
+            className="fx-magnet w-full sm:w-auto"
           >
             Get free consultation
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

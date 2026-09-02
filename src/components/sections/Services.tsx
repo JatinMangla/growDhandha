@@ -1,4 +1,5 @@
 import { ArrowUpRight, Check } from 'lucide-react';
+import { CardFx } from '@/components/ui/PointerFX';
 import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { services } from '@/data/services';
@@ -19,7 +20,8 @@ export function Services() {
             const Icon = service.icon;
             return (
               <Reveal as="li" key={service.id} delay={(index % 3) * 0.08}>
-                <article className="bracket-frame surface-card group flex h-full flex-col gap-4 p-6 transition-all duration-300 ease-entrance hover:-translate-y-1 hover:border-brand/50 hover:shadow-lift sm:p-7">
+                <article className="bracket-frame fx-card surface-card group flex h-full flex-col gap-4 p-6 hover:border-brand/50 hover:shadow-lift sm:p-7">
+                  <CardFx />
                   <span className="inline-flex h-12 w-12 items-center justify-center rounded-soft bg-brand/10 text-brand-ink transition-colors duration-300 group-hover:bg-brand group-hover:text-on-brand">
                     <Icon className="h-6 w-6" aria-hidden="true" />
                   </span>

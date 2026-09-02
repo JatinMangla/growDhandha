@@ -83,7 +83,9 @@ with saffron. It deliberately avoids the default dark-background-plus-neon-accen
 | `fg`           | `#0E1330` | `#F0EEE8` | Body and heading text                 |
 | `brand`        | `#FF7A18` | `#FF8A33` | Saffron — primary CTAs, the accent    |
 | `brand-ink`    | `#B84A00` | `#FFA863` | Saffron used as text (WCAG AA on both)|
-| `accent`       | `#10A37A` | `#2DC89B` | Jade — trust ticks, WhatsApp          |
+| `accent`       | `#10A37A` | `#2DC89B` | Jade — trust ticks and icons          |
+| `whatsapp`     | `#0A7C5C` | `#2DC89B` | WhatsApp button fill (AA under its text) |
+| `subtle`       | `#616987` | `#858DA6` | Small print — both tuned to pass AA at 12px |
 | `gold`         | `#E8B325` | `#F0C54A` | Pricing and highlight moments         |
 
 Type: **Sora** for display, **Plus Jakarta Sans** for body, both self-hosted through `next/font`.
@@ -99,31 +101,47 @@ themes from one set of classes.
 
 ### Motion
 
+Three techniques, chosen by what each costs the page.
+
+**1. Scroll-driven CSS timelines — the bulk of it, at zero JavaScript.**
+`animation-timeline: view()` and `scroll()` let the browser link an animation to scroll position
+itself, off the main thread: no observer, no listener, nothing to hydrate. They drive the section
+reveals (which genuinely scrub — drag the scrollbar and the content tracks it), the process spine
+filling, the hero's parallax depth layers, the drift on project card art, and the scroll progress
+bar. Chromium 115+, which is most of the Android traffic this site is built for; wrapped in
+`@supports`, so Safari and Firefox fall back to the IntersectionObserver reveals and get a simpler
+version of the same choreography.
+
+**2. Pointer-reactive surfaces — desktop only.**
+[`PointerFX`](src/components/ui/PointerFX.tsx) is one delegated listener that writes CSS custom
+properties; every pixel of movement happens in CSS. Cards tilt in 3D and carry a light that tracks
+the cursor, and the primary CTA leans toward the pointer. Gated on
+`(hover: hover) and (pointer: fine)`, so a phone never executes a line of it. The element's rect is
+cached on enter rather than measured per move — writing custom properties invalidates layout, and
+re-measuring every frame is the usual way an effect like this turns into jank.
+
+**3. Ambient loops.** A conic-gradient aurora ring travelling around the featured price tier and the
+availability badge, driven by an `@property`-registered angle so it can actually interpolate; a band
+of light crossing the hero grid; two counter-scrolling tech lanes.
+
+The headline assembles word by word out of per-word clipping masks
+([`SplitWords`](src/components/ui/SplitWords.tsx)) on CSS `animation-delay` — transform only, no
+blur, and no waiting for hydration.
+
+**Framer Motion** is left with exactly one job: the mobile menu
+([`MobileMenu`](src/components/layout/MobileMenu.tsx)), which needs a real enter *and* exit sequence
+with staggered children. It is code-split via `next/dynamic` and downloaded only when a visitor first
+opens the menu, so it never touches the initial page load.
+
 Everything animates transform and opacity only, on one easing curve
-(`cubic-bezier(0.16, 1, 0.3, 1)`, shared between the CSS and [`src/lib/motion.ts`](src/lib/motion.ts)):
-an orchestrated hero entrance, scroll-triggered reveals, hover micro-interactions, animated counters,
-a scroll-progress bar, the filling process spine, and slow ambient washes behind the hero.
+(`cubic-bezier(0.16, 1, 0.3, 1)`). Two effects were cut after measuring rather than kept for show: a
+`scale(0.985)` on the reveals, which re-rasterised every glyph on each scroll frame and left text
+soft while it moved, and a letter-spacing animation on headings, which would have forced layout on
+every frame.
 
-**Where the animation actually runs, and why.** The first build drove all of this with Framer Motion
-and measured 64 on Lighthouse mobile — roughly forty `Reveal` components each carrying their own
-animation runtime and observer was the single largest source of main-thread blocking. The brief's own
-restraint rule applies: if an animation makes the page feel slower, cut it. So:
-
-- **CSS**, on the compositor, for everything repeated or above the fold — the hero sequence (via
-  staggered `animation-delay`, so the headline never waits for hydration), the scroll reveals, the
-  process spine, the ambient washes, the tech ticker.
-- **One shared `IntersectionObserver`** ([`RevealObserver`](src/components/ui/RevealObserver.tsx))
-  drives every `data-reveal` element on the page, so [`Reveal`](src/components/ui/Reveal.tsx) itself
-  is a *server* component with no client JavaScript at all.
-- **Framer Motion** for the mobile menu ([`MobileMenu`](src/components/layout/MobileMenu.tsx)), which
-  genuinely needs an enter *and* exit sequence with staggered children. It is code-split via
-  `next/dynamic` and downloaded only when a visitor first opens the menu, so it never touches the
-  initial page load.
-
-`prefers-reduced-motion` is honoured globally in CSS and again in JavaScript (`RevealObserver`,
-`Counter`, `MobileMenu`), so reduced-motion visitors get the finished layout with no movement.
-Content is never gated on an animation finishing: with JavaScript disabled entirely, every section
-renders visible, because the hidden states are scoped to a `.js` class set before first paint.
+`prefers-reduced-motion` stops every loop, parallax, pointer reaction and entrance, resolving the
+page to its finished state. With JavaScript disabled entirely nothing is hidden, because the hidden
+states are scoped to a `.js` class set before first paint.
 
 ---
 
@@ -193,13 +211,17 @@ Measured with Lighthouse (mobile preset) against `npm run build && npm start`:
 
 | Category       | Score  |
 | -------------- | ------ |
-| Performance    | 89–92  |
+| Performance    | 93     |
 | Accessibility  | 100    |
 | Best Practices | 100    |
 | SEO            | 100    |
 
-Performance is a median of warm runs; it varies a few points with machine load, and should read
-higher on Vercel's CDN than on a local server. Total blocking time is ~200ms and CLS is 0.005.
+Performance is a median of five warm runs; it varies a few points with machine load, and should read
+higher on Vercel's CDN than on a local server. Total blocking time is ~100ms and CLS is 0.005.
+
+Accessibility is also verified separately with axe-core against the **resting** state in both themes
+(zero WCAG A/AA violations). That matters here: Lighthouse samples mid-animation, so a fade-in caught
+in flight reports contrast that the settled element does not actually have.
 
 What is in place:
 

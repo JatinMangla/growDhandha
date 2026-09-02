@@ -24,7 +24,7 @@ export function Process() {
         <div className="relative">
           <Reveal
             as="span"
-            className="absolute bottom-8 left-[1.375rem] top-3 w-px bg-line sm:left-[1.625rem]"
+            className="reveal-static absolute bottom-8 left-[1.375rem] top-3 w-px bg-line sm:left-[1.625rem]"
           >
             <span
               aria-hidden="true"

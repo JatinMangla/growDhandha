@@ -14,8 +14,12 @@
   --c-surface: 255 253 250; /* #FFFDFA raised card */
   --c-sunken: 244 238 228; /* #F4EEE4 recessed band */
   --c-fg: 14 19 48; /* #0E1330 indigo ink */
-  --c-muted: 90 99 130; /* #5A6382 */
-  --c-subtle: 126 134 160;
+  --c-muted: 90 99 130; /* #5A6382 — 5.55:1 on paper */
+  /* #616987 — 5.1:1 on paper, 4.75:1 on the sunken band. The lighter value
+     this started as measured 3.4:1, which fails AA at the 12px sizes it is
+     actually used at; it only ever looked fine because most of the elements
+     using it were sitting at opacity 0 when anything checked. */
+  --c-subtle: 97 105 135;
   --c-line: 226 218 205;
   --c-brand: 255 122 24; /* #FF7A18 saffron */
   --c-brand-ink: 184 74 0; /* #B84A00 saffron, legible as text */
@@ -23,6 +27,11 @@
   --c-accent: 16 163 122; /* #10A37A jade */
   --c-accent-ink: 7 114 79; /* #07724F */
   --c-gold: 232 179 37; /* #E8B325 */
+  /* The WhatsApp buttons carry white text, so their fill has to be darker
+     than the jade used for ticks and icons: #10A37A under white is only
+     3.2:1. #0A7C5C is 5.2:1. */
+  --c-whatsapp: 10 124 92; /* #0A7C5C */
+  --c-on-whatsapp: 255 255 255;
 
   --rule-height: 1px;
   --shell-gutter: 1.25rem;
@@ -36,7 +45,10 @@
   --c-sunken: 6 8 20;
   --c-fg: 240 238 232; /* #F0EEE8 */
   --c-muted: 163 170 194;
-  --c-subtle: 122 130 156;
+  /* #858DA6. The darker value it started as measured 4.36:1 wherever an
+     ambient wash lightens the ground behind it — passing against the flat
+     background but failing in the places the design actually puts it. */
+  --c-subtle: 133 141 166;
   --c-line: 38 45 76;
   --c-brand: 255 138 51; /* #FF8A33 lifted for dark ground */
   --c-brand-ink: 255 168 99;
@@ -44,6 +56,9 @@
   --c-accent: 45 200 155;
   --c-accent-ink: 82 217 175;
   --c-gold: 240 197 74;
+  /* On the night ground the bright jade reads better, with ink on top: 9.1:1. */
+  --c-whatsapp: 45 200 155;
+  --c-on-whatsapp: 9 12 28;
 
   color-scheme: dark;
 }
@@ -205,6 +220,36 @@
   .js [data-reveal].is-revealed .process-spine {
     transform: scaleY(1);
   }
+
+  /* --- Headline assembly ------------------------------------------------
+     Each word rises out of its own clipping mask, so the line assembles
+     itself rather than fading in as a block. Transform only — no blur, no
+     opacity churn on text, which is what keeps it cheap on a phone.      */
+  .word-mask {
+    display: inline-block;
+    overflow: hidden;
+    /* Descenders would be clipped by the mask without this. */
+    padding-bottom: 0.14em;
+    margin-bottom: -0.14em;
+    vertical-align: bottom;
+  }
+
+  .word-mask > span {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  .js .word-mask > span {
+    transform: translateY(105%);
+    animation: word-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(180ms + var(--w, 0) * 55ms);
+  }
+
+  @keyframes word-rise {
+    to {
+      transform: none;
+    }
+  }
 }
 
 @layer utilities {
@@ -248,6 +293,326 @@
 }
 
 /* ==========================================================================
+   MOTION SYSTEM
+
+   Three techniques, in order of how much they cost the page:
+
+   1. Scroll-driven CSS timelines (`animation-timeline`). The browser links the
+      animation to scroll position itself, off the main thread — no observer,
+      no listener, no JavaScript at all. Chromium 115+, which is the bulk of
+      the Android traffic this site is built for. Wrapped in `@supports`, so
+      Safari and Firefox fall back to the IntersectionObserver reveals above
+      and simply get a less elaborate version of the same choreography.
+
+   2. Pointer-reactive surfaces. One delegated listener writes custom
+      properties; all the movement happens in CSS. Gated to fine pointers, so
+      a phone never runs any of it.
+
+   3. Ambient loops (the aurora ring, the scanline). Composited transforms and
+      a registered custom property, so they animate without layout or paint.
+   ========================================================================== */
+
+/* A registered property can be interpolated; a plain custom property cannot.
+   This is what lets the conic-gradient ring actually rotate. */
+@property --aurora-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@layer components {
+  /* --- The aurora ring --------------------------------------------------
+     A single bright arc travelling around the border of the element it
+     frames. Used sparingly: the featured price tier and the availability
+     badge. The mask trick paints only the 1px border, not the whole box.  */
+  .aurora-ring {
+    position: relative;
+  }
+
+  .aurora-ring::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    /* Above the card's own background — a negative z-index would put the ring
+       behind the opaque surface and make it invisible. The mask leaves only a
+       1.5px border, so nothing can obscure content. */
+    z-index: 2;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--aurora-angle),
+      transparent 0%,
+      rgb(var(--c-brand)) 8%,
+      rgb(var(--c-gold)) 15%,
+      transparent 26%,
+      transparent 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    animation: aurora-spin 6s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes aurora-spin {
+    to {
+      --aurora-angle: 360deg;
+    }
+  }
+
+  /* --- Pointer-reactive card -------------------------------------------
+     Tilt and a light that tracks the cursor. `--px/--py/--rx/--ry` are
+     written by PointerFX; every value here has a resting default, so the
+     card is correct before any JavaScript runs and on any device that
+     never sends a fine pointer.                                          */
+  .fx-card {
+    transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+      translate3d(0, var(--lift, 0px), 0);
+    transition:
+      transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.3s ease,
+      box-shadow 0.4s ease;
+  }
+
+  /* The travelling light and the edge glow, as real elements rather than
+     pseudo-elements, because `bracket-frame` already owns ::before/::after. */
+  .fx-sheen {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      340px circle at var(--px, 50%) var(--py, 50%),
+      rgb(var(--c-brand) / 0.16),
+      rgb(var(--c-gold) / 0.06) 40%,
+      transparent 68%
+    );
+  }
+
+  .fx-edge {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    background: radial-gradient(
+      260px circle at var(--px, 50%) var(--py, 50%),
+      rgb(var(--c-brand) / 0.55),
+      transparent 70%
+    );
+    padding: 1px;
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+  }
+
+  /* Card content must sit above the light layers. */
+  .fx-card > *:not(.fx-sheen):not(.fx-edge) {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .fx-card:hover {
+      --lift: -5px;
+    }
+
+    .fx-card:hover .fx-sheen,
+    .fx-card:focus-within .fx-sheen,
+    .fx-card:hover .fx-edge,
+    .fx-card:focus-within .fx-edge {
+      opacity: 1;
+    }
+  }
+
+  /* Buttons that lean towards the cursor. */
+  .fx-magnet {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .fx-magnet {
+      transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
+    }
+  }
+
+  /* A slow band of light crossing the hero grid, like a readout refreshing. */
+  .hero-scanline {
+    position: absolute;
+    inset-inline: 0;
+    height: 45vh;
+    top: -45vh;
+    pointer-events: none;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--c-brand) / 0.07) 45%,
+      rgb(var(--c-gold) / 0.05) 55%,
+      transparent
+    );
+    animation: scanline-fall 9s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+
+  @keyframes scanline-fall {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    12% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(160vh);
+      opacity: 0;
+    }
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Scroll-driven timelines. Everything in here is progressive enhancement:
+   without support, the IntersectionObserver reveals already handle the page.
+   -------------------------------------------------------------------------- */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Reveals become genuinely scroll-linked: scrub back and forth with the
+       scrollbar and the content tracks it, instead of firing once at a
+       threshold. `--reveal-order` staggers siblings by shifting the range. */
+    /* The spine wrapper spans the whole timeline; an entry-range fade over
+       an element that tall would leave it invisible for most of the scroll,
+       so it opts out and only its inner fill animates. */
+    .js [data-reveal]:not(.reveal-static) {
+      opacity: 1;
+      transform: none;
+      transition: none;
+      animation: reveal-scrub linear both;
+      animation-timeline: view();
+      animation-range: entry calc(2% + var(--reveal-order, 0) * 4%) entry
+        calc(62% + var(--reveal-order, 0) * 4%);
+    }
+
+    /* Opacity and translation only. An earlier version also scaled from
+       0.985, which re-rasterises every glyph on each scroll frame — text goes
+       soft while it moves, and measured hit areas shrink below their 44px
+       minimum mid-scrub. Not worth it for an effect nobody can see. */
+    /* Opacity resolves at 45%, the travel continues to 100%. Text is fully
+       opaque for most of its movement instead of drifting up half-faded,
+       which reads better and keeps contrast honest the whole way. */
+    @keyframes reveal-scrub {
+      0% {
+        opacity: 0;
+        transform: translateY(26px);
+      }
+      45% {
+        opacity: 1;
+      }
+      100% {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /* The process spine fills in step with the scroll rather than on a timer. */
+    .js .process-spine {
+      transform: scaleY(0);
+      transition: none;
+      animation: spine-fill linear both;
+      animation-timeline: view();
+      animation-range: cover 8% cover 62%;
+    }
+
+    @keyframes spine-fill {
+      to {
+        transform: scaleY(1);
+      }
+    }
+
+    /* Depth: hero layers drift at different rates against the scroll. */
+    .parallax-layer {
+      animation: parallax-drift linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0 100vh;
+      will-change: transform;
+    }
+
+    @keyframes parallax-drift {
+      to {
+        transform: translate3d(0, calc(var(--parallax, 12) * 1%), 0);
+      }
+    }
+
+    /* Project card art shifts inside its frame as the card crosses the view. */
+    .parallax-art {
+      animation: art-shift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    @keyframes art-shift {
+      from {
+        transform: translate3d(0, -7%, 0) scale(1.08);
+      }
+      to {
+        transform: translate3d(0, 7%, 0) scale(1.08);
+      }
+    }
+
+    /* The ledger rule draws itself in as its section arrives. */
+    .ledger-rule {
+      animation: rule-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 10% entry 70%;
+      transform-origin: left center;
+    }
+
+    @keyframes rule-draw {
+      from {
+        transform: scaleX(0);
+      }
+      to {
+        transform: scaleX(1);
+      }
+    }
+
+  }
+}
+
+/* The scroll-progress bar drives itself from the document scroll timeline.
+   ScrollProgress.tsx detects this and skips its listener entirely. */
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-progress {
+      transform: scaleX(0);
+      animation: progress-grow linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    @keyframes progress-grow {
+      to {
+        transform: scaleX(1);
+      }
+    }
+  }
+}
+
+/* ==========================================================================
    Reduced motion — honour the OS setting, keep everything legible.
    Framer Motion variants also read this via useReducedMotion().
    ========================================================================== */
@@ -270,11 +635,45 @@
     transform: none;
   }
 
-  /* Reveals and the hero sequence resolve to their finished state instantly. */
+  /* Reveals and both entrance sequences resolve to their finished state. */
   .js [data-reveal],
-  .js .hero-enter > * {
+  .js .hero-enter > *,
+  .js .word-mask > span {
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;
+  }
+
+  /* Ambient loops and pointer reactions stop entirely — these are the ones
+     that would otherwise keep moving with nobody asking them to. */
+  .aurora-ring::before,
+  .hero-scanline,
+  .parallax-layer,
+  .parallax-art {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .hero-scanline {
+    display: none;
+  }
+
+  .fx-card,
+  .fx-magnet {
+    transform: none !important;
+  }
+
+  .fx-sheen,
+  .fx-edge {
+    display: none;
+  }
+
+  .process-spine {
+    transform: scaleY(1) !important;
+  }
+
+  .ledger-rule {
+    transform: none !important;
+    opacity: 1 !important;
   }
 }

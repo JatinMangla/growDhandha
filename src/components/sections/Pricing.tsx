@@ -1,6 +1,7 @@
 import { ArrowUpRight, Check, MessageCircle } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
 import { LedgerRule } from '@/components/ui/LedgerRule';
+import { CardFx } from '@/components/ui/PointerFX';
 import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { customOption, pricingAssurances, pricingTiers } from '@/data/pricing';
@@ -23,12 +24,13 @@ export function Pricing() {
             <Reveal as="li" key={tier.id} delay={index * 0.08} className="h-full">
               <article
                 className={cn(
-                  'surface-card flex h-full flex-col gap-6 p-6 transition-all duration-300 ease-entrance hover:-translate-y-1 hover:shadow-lift sm:p-8',
+                  'fx-card surface-card flex h-full flex-col gap-6 p-6 hover:shadow-lift sm:p-8',
                   tier.featured
-                    ? 'border-brand shadow-lift lg:-translate-y-3 lg:hover:-translate-y-4'
+                    ? 'aurora-ring border-brand shadow-lift lg:-mt-3'
                     : 'hover:border-brand/50',
                 )}
               >
+                <CardFx />
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="font-display text-lg font-semibold">{tier.name}</h3>

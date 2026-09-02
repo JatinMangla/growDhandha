@@ -2,6 +2,9 @@ import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { techGroups, techMarquee } from '@/data/tech';
 
+/** The second lane runs the list backwards so the two never sync up. */
+const reversedMarquee = [...techMarquee].reverse();
+
 export function TechStack() {
   return (
     <section id="stack" aria-labelledby="stack-heading" className="defer-render py-20 sm:py-24 lg:py-28">
@@ -34,19 +37,34 @@ export function TechStack() {
         </div>
       </div>
 
-      {/* Continuous ticker. Duplicated once so the loop is seamless; the copy
-          is hidden from assistive tech since the list above already names it. */}
+      {/* Two lanes running against each other, at different speeds. The
+          counter-motion is what makes it read as a mechanism rather than a
+          scrolling list. Each lane is duplicated so its loop is seamless, and
+          the whole thing is hidden from assistive tech because the grouped
+          list above already names every item. */}
       <div
-        className="relative mt-12 flex overflow-hidden border-y border-line bg-sunken py-4"
+        aria-hidden="true"
+        className="relative mt-12 flex flex-col gap-3 overflow-hidden border-y border-line bg-sunken py-5"
         style={{
           maskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
           WebkitMaskImage: 'linear-gradient(to right, transparent, black 12%, black 88%, transparent)',
         }}
       >
-        <div aria-hidden="true" className="flex w-max animate-marquee-x gap-8 pr-8 motion-reduce:animate-none">
+        <div className="flex w-max animate-marquee-x gap-8 pr-8 motion-reduce:animate-none">
           {[...techMarquee, ...techMarquee].map((item, index) => (
             <span
-              key={`${item}-${index}`}
+              key={`a-${item}-${index}`}
+              className="whitespace-nowrap font-display text-lg font-medium text-subtle"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex w-max animate-marquee-x-reverse gap-8 pr-8 motion-reduce:animate-none">
+          {[...reversedMarquee, ...reversedMarquee].map((item, index) => (
+            <span
+              key={`b-${item}-${index}`}
               className="whitespace-nowrap font-display text-lg font-medium text-subtle"
             >
               {item}

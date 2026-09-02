@@ -24,8 +24,16 @@ type RevealProps = {
  * observer and no per-element JavaScript.
  */
 export function Reveal({ children, delay = 0, className, as: Tag = 'div' }: RevealProps) {
+  // Two forms of the same stagger: `--reveal-delay` for the transition
+  // fallback, and `--reveal-order` for scroll-driven timelines, where a delay
+  // is meaningless and siblings are offset by shifting the animation range.
   const style =
-    delay > 0 ? ({ '--reveal-delay': `${Math.round(delay * 1000)}ms` } as CSSProperties) : undefined;
+    delay > 0
+      ? ({
+          '--reveal-delay': `${Math.round(delay * 1000)}ms`,
+          '--reveal-order': Math.round(delay / 0.08),
+        } as CSSProperties)
+      : undefined;
 
   return (
     <Tag data-reveal="" className={className} style={style}>

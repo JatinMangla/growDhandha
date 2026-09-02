@@ -1,5 +1,6 @@
 import { ArrowUpRight, Github } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
+import { CardFx } from '@/components/ui/PointerFX';
 import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { projects } from '@/data/projects';
@@ -27,14 +28,15 @@ export function Portfolio() {
         <ul className="grid gap-5 lg:grid-cols-2">
           {projects.map((project, index) => (
             <Reveal as="li" key={project.id} delay={(index % 2) * 0.08}>
-              <article className="bracket-frame surface-card group flex h-full flex-col overflow-hidden transition-all duration-300 ease-entrance hover:-translate-y-1 hover:border-brand/50 hover:shadow-lift">
+              <article className="bracket-frame fx-card surface-card group flex h-full flex-col overflow-hidden hover:border-brand/50 hover:shadow-lift">
+                <CardFx />
                 <div
                   className={cn(
                     'relative flex h-32 items-center justify-between gap-4 bg-gradient-to-br px-6 sm:h-36 sm:px-7',
                     accentBanner[project.accent],
                   )}
                 >
-                  <span className="ruled-paper absolute inset-0 opacity-25" aria-hidden="true" />
+                  <span className="ruled-paper parallax-art absolute inset-0 opacity-25" aria-hidden="true" />
                   <span
                     aria-hidden="true"
                     className="relative font-display text-5xl font-bold tracking-tight opacity-90 transition-transform duration-500 group-hover:scale-105 sm:text-6xl"

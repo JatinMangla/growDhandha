@@ -6,6 +6,7 @@ import { FloatingWhatsApp } from '@/components/layout/FloatingWhatsApp';
 import { Header } from '@/components/layout/Header';
 import { ScrollProgress } from '@/components/layout/ScrollProgress';
 import { ThemeScript } from '@/components/layout/ThemeScript';
+import { PointerFX } from '@/components/ui/PointerFX';
 import { RevealObserver } from '@/components/ui/RevealObserver';
 import { site, siteUrl } from '@/data/site';
 import './globals.css';
@@ -113,6 +114,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <AnchorScroll />
         <RevealObserver />
+        <PointerFX />
         <ScrollProgress />
         <Header />
         <main id="main">{children}</main>

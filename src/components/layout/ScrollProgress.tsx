@@ -5,8 +5,12 @@ import { useEffect, useRef } from 'react';
 /**
  * Hairline progress bar pinned under the header. Decorative only.
  *
- * Writes a transform directly on the node inside a rAF-throttled passive
- * scroll listener — no React state, so scrolling never triggers a re-render.
+ * Where the browser supports scroll-driven timelines it drives itself entirely
+ * from CSS (`animation-timeline: scroll(root)`) and this component does
+ * nothing at all — no listener, no rAF, no work on the main thread while
+ * scrolling. Everywhere else it falls back to a rAF-throttled passive
+ * listener writing the transform directly, with no React state, so scrolling
+ * still never triggers a re-render.
  */
 export function ScrollProgress() {
   const ref = useRef<HTMLDivElement>(null);
@@ -14,6 +18,13 @@ export function ScrollProgress() {
   useEffect(() => {
     const node = ref.current;
     if (!node) return;
+
+    const nativeTimeline =
+      typeof CSS !== 'undefined' &&
+      CSS.supports('animation-timeline: scroll()') &&
+      !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (nativeTimeline) return;
 
     let frame = 0;
 
@@ -44,8 +55,7 @@ export function ScrollProgress() {
     <div
       ref={ref}
       aria-hidden="true"
-      style={{ transform: 'scaleX(0)' }}
-      className="fixed inset-x-0 top-0 z-[60] h-[3px] origin-left bg-gradient-to-r from-brand via-gold to-accent"
+      className="scroll-progress fixed inset-x-0 top-0 z-[60] h-[3px] origin-left bg-gradient-to-r from-brand via-gold to-accent"
     />
   );
 }

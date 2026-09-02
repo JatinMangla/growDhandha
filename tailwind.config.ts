@@ -26,6 +26,8 @@ const config: Config = {
         accent: token('--c-accent'),
         'accent-ink': token('--c-accent-ink'),
         gold: token('--c-gold'),
+        whatsapp: token('--c-whatsapp'),
+        'on-whatsapp': token('--c-on-whatsapp'),
       },
       fontFamily: {
         display: ['var(--font-display)', 'Georgia', 'serif'],
@@ -77,12 +79,17 @@ const config: Config = {
           from: { transform: 'translateX(0)' },
           to: { transform: 'translateX(-50%)' },
         },
+        'marquee-x-reverse': {
+          from: { transform: 'translateX(-50%)' },
+          to: { transform: 'translateX(0)' },
+        },
       },
       animation: {
         'rule-pulse': 'rule-pulse 3.6s cubic-bezier(0.4, 0, 0.2, 1) infinite',
         'wash-a': 'wash-a 22s ease-in-out infinite',
         'wash-b': 'wash-b 26s ease-in-out infinite 1.5s',
         'marquee-x': 'marquee-x 38s linear infinite',
+        'marquee-x-reverse': 'marquee-x-reverse 52s linear infinite',
       },
     },
   },
