@@ -104,6 +104,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-IN" suppressHydrationWarning className={`${display.variable} ${body.variable}`}>
       <head>
         <ThemeScript />
+        {/* Without these an agent has no way to know a markdown form exists.
+            The alternate is the same content, not a separate document, so the
+            HTML page stays canonical. */}
+        <link rel="alternate" type="text/markdown" href="/index.md" title="This page as markdown" />
+        <link rel="alternate" type="text/markdown" href="/llms.txt" title="Site summary for LLMs" />
+        <link
+          rel="alternate"
+          type="text/markdown"
+          href="/llms-full.txt"
+          title="Full site content as markdown"
+        />
       </head>
       <body>
         <a

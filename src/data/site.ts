@@ -66,6 +66,17 @@ export function whatsappLink(message: string): string {
   return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 }
 
+/**
+ * When the static pages last changed in substance. Bump this by hand when you
+ * edit real content — copy, pricing, services.
+ *
+ * It exists because the sitemap previously sent `new Date()`, so every deploy
+ * claimed the homepage had just changed. Crawlers learn to discount a sitemap
+ * that always says everything is new, which costs credibility on exactly the
+ * freshness signal we want to be trusted on.
+ */
+export const contentUpdatedAt = '2026-09-02';
+
 export const defaultEnquiry =
   'Hi Jatin, I saw your website. I want to discuss a project for my business.';
 

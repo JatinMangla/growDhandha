@@ -1,4 +1,6 @@
 import { faqs } from '@/data/faqs';
+import { pricingTiers } from '@/data/pricing';
+import { processSteps } from '@/data/process';
 import { services } from '@/data/services';
 import { site, siteUrl } from '@/data/site';
 
@@ -75,6 +77,8 @@ const professionalService: Schema = {
       closes: '20:00',
     },
   ],
+  image: `${siteUrl}/opengraph-image`,
+  logo: `${siteUrl}/icon.svg`,
   makesOffer: services.map((service) => ({
     '@type': 'Offer',
     itemOffered: {
@@ -90,6 +94,56 @@ const professionalService: Schema = {
       priceCurrency: 'INR',
       minPrice: 4999,
     },
+  })),
+  /* Real per-tier prices, so an assistant can state a figure and attribute it
+     rather than paraphrasing "affordable". `priceValue` comes from the same
+     data that renders the pricing cards, so the two cannot disagree. */
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    '@id': `${siteUrl}/#pricing`,
+    name: 'Website and software packages',
+    itemListElement: pricingTiers.map((tier) => ({
+      '@type': 'Offer',
+      name: tier.name,
+      description: tier.bestFor,
+      price: tier.priceValue,
+      priceCurrency: 'INR',
+      ...(tier.priceIsFrom
+        ? {
+            priceSpecification: {
+              '@type': 'PriceSpecification',
+              priceCurrency: 'INR',
+              minPrice: tier.priceValue,
+            },
+          }
+        : {}),
+      availability: 'https://schema.org/InStock',
+      seller: { '@id': businessId },
+      url: `${siteUrl}/pricing`,
+      deliveryLeadTime: tier.timeline,
+    })),
+  },
+};
+
+/** The five delivery steps are a genuine HowTo, and nothing else competes for it. */
+const howTo: Schema = {
+  '@type': 'HowTo',
+  '@id': `${siteUrl}/#process`,
+  name: 'How a website or app project runs, start to finish',
+  description:
+    'The five steps from first conversation to launch, including what you pay when and what you see at each stage.',
+  inLanguage: 'en-IN',
+  estimatedCost: {
+    '@type': 'MonetaryAmount',
+    currency: 'INR',
+    minValue: 4999,
+  },
+  step: processSteps.map((processStep, index) => ({
+    '@type': 'HowToStep',
+    position: index + 1,
+    name: processStep.title,
+    text: `${processStep.description} ${processStep.detail}`,
+    url: `${siteUrl}/#process`,
   })),
 };
 
@@ -114,7 +168,7 @@ const website: Schema = {
 
 const graph = {
   '@context': 'https://schema.org',
-  '@graph': [website, professionalService, person, faqPage],
+  '@graph': [website, professionalService, person, faqPage, howTo],
 };
 
 /**

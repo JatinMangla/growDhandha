@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { ArrowUpRight, Check, MessageCircle } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
 import { LedgerRule } from '@/components/ui/LedgerRule';
@@ -92,6 +93,16 @@ export function Pricing() {
             <MessageCircle className="h-4 w-4" aria-hidden="true" />
             {customOption.ctaLabel}
           </ButtonLink>
+        </Reveal>
+
+        <Reveal className="text-center">
+          <Link
+            href="/pricing"
+            className="tap-target inline-flex items-center gap-1.5 text-sm font-semibold text-fg transition-colors hover:text-brand-ink"
+          >
+            See the full pricing breakdown
+            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </Reveal>
 
         <Reveal>

@@ -1,4 +1,4 @@
-# jatinmangla.dev
+# growDhandha
 
 Marketing site for **Jatin Mangla** — freelance web & mobile development for Indian small businesses.
 Built with Next.js (App Router), TypeScript, Tailwind CSS and Framer Motion.
@@ -43,7 +43,7 @@ everywhere it appears — including the SEO structured data and the sitemap.
 | [`src/data/pricing.ts`](src/data/pricing.ts)                 | The three tiers, the custom option, and the assurance strip        |
 | [`src/data/tech.ts`](src/data/tech.ts)                       | The tech stack groups and the ticker                               |
 | [`src/data/faqs.ts`](src/data/faqs.ts)                       | The FAQ accordion — also emitted as `FAQPage` structured data      |
-| [`src/data/posts.ts`](src/data/posts.ts)                     | Blog posts (empty at launch) and the planned-topics list           |
+| [`src/data/posts.ts`](src/data/posts.ts)                     | The five published articles and the planned-topics list            |
 
 ### Adding a project
 
@@ -56,18 +56,30 @@ Append one object to `posts` in `src/data/posts.ts`:
 
 ```ts
 {
-  slug: 'what-a-business-website-costs-in-india',
-  title: 'What a business website should actually cost in India',
-  description: 'One-line summary used on the listing and in search results.',
+  slug: 'url-safe-slug',
+  title: 'The question, asked the way a customer would ask it',
+  description: 'One-line summary for the listing and search results.',
   publishedAt: '2026-09-15',
+  updatedAt: '2026-09-15',
   readingMinutes: 6,
   tags: ['pricing', 'websites'],
-  paragraphs: ['First paragraph.', 'Second paragraph.'],
+  // The direct answer. Rendered first on the page and used as the summary
+  // everywhere else — extraction models take the first answer they find, so
+  // burying it under preamble is the usual reason a page gets passed over.
+  answer: 'A one-sentence answer to the title.',
+  body: [
+    { kind: 'paragraph', text: '…' },
+    { kind: 'heading', text: 'A question-shaped heading' },
+    { kind: 'list', items: ['…'], ordered: false },
+    { kind: 'callout', text: 'The line worth quoting on its own.' },
+    { kind: 'qa', question: '…', answer: 'A self-contained answer.' },
+  ],
 }
 ```
 
-The listing page, the post page, the sitemap entry and the metadata all pick it up with no other
-changes. Until the array has entries, `/blog` shows a deliberate empty state listing what is coming.
+`qa` blocks are rendered *and* emitted as `FAQPage` structured data, so write answers that stand
+alone without the surrounding article. The listing, the post page, the sitemap entry, the metadata,
+the JSON-LD and the markdown representation all pick the new post up with no other changes.
 
 ---
 
@@ -157,21 +169,63 @@ POST the same validated payload to it before the WhatsApp hand-off.
 
 ---
 
-## SEO
+## SEO and AI search
 
 Handled in-repo, nothing to configure:
 
-- Per-page `<title>` and meta description; one `<h1>` per page.
+- Per-page `<title>` and meta description; exactly one `<h1>` per page.
 - Open Graph and Twitter Card tags, with a 1200×630 preview card generated at build time
   ([`src/lib/og.tsx`](src/lib/og.tsx)) for WhatsApp and LinkedIn link previews.
-- JSON-LD `@graph` with `ProfessionalService` / `LocalBusiness`, `Person`, `Service` offers and
-  `FAQPage` ([`src/components/seo/JsonLd.tsx`](src/components/seo/JsonLd.tsx)).
+- A consolidated JSON-LD `@graph` ([`JsonLd.tsx`](src/components/seo/JsonLd.tsx)) holding
+  `ProfessionalService`/`LocalBusiness`, `Person`, `Service` offers with **real INR prices**, a
+  `HowTo` built from the five process steps, and `FAQPage`. Articles add `BlogPosting`,
+  `BreadcrumbList` and their own `FAQPage` ([`ArticleJsonLd.tsx`](src/components/seo/ArticleJsonLd.tsx)).
+  Every entity cross-references by `@id`, so there is one business and one person across the site.
 - `sitemap.xml` and `robots.txt` generated from the route tree.
-- [`public/llms.txt`](public/llms.txt) for AI search crawlers.
-- `/blog` exists and is indexable from day one — it is the long-term organic strategy.
+- `/blog` with five published guides, and a dedicated `/pricing` page.
 
-After the first deploy: add the domain to Google Search Console, submit `/sitemap.xml`, and set
-`NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` if you verify by meta tag.
+### AI crawlers
+
+[`src/app/robots.ts`](src/app/robots.ts) names every significant AI crawler explicitly — training
+(`GPTBot`, `ClaudeBot`, `Google-Extended`, `CCBot`, …) and answering (`OAI-SearchBot`,
+`Claude-SearchBot`, `PerplexityBot`, …) — all currently allowed.
+
+**If you change that policy, read the comment in that file first.** A crawler obeys only the single
+most specific group matching its name and does not fall back to `*`, so every named group has to
+repeat `Disallow: /api/`. Adding a bot without that would grant it *more* access than the wildcard.
+
+### Markdown representations
+
+`/llms.txt` and `/llms-full.txt` are generated from `src/data/*` by
+[`content-markdown.ts`](src/lib/content-markdown.ts), so they cannot drift the way the previous
+hand-written file did. Any page is also available as markdown two ways — a `.md` suffix
+(`/pricing.md`) or an `Accept: text/markdown` header — via
+[`middleware.ts`](src/middleware.ts) rewriting to [`/api/md`](src/app/api/md/route.ts).
+
+Two things worth knowing before you invest more here:
+
+- **Calibrate the expectation.** The best public measurement of markdown variants found they receive
+  a negligible share of AI citations, and Google has stated `llms.txt` does not influence ranking.
+  What they reliably do is cut an agent's token cost. Treat them as cheap insurance, not a lever.
+- **The `Accept` check compares q-values.** Browsers send `Accept: text/html,…,*/*;q=0.8`, so a naive
+  substring test would serve markdown to every human visitor. The middleware requires markdown to be
+  ranked *above* HTML, and there is a regression test for exactly that.
+
+### Freshness
+
+`lastModified` in the sitemap comes from real content dates — `contentUpdatedAt` in
+[`site.ts`](src/data/site.ts) for static pages, and each post's `updatedAt`. It previously sent
+`new Date()`, so every deploy claimed the homepage had just changed; crawlers discount a sitemap that
+always says everything is new. **Bump `contentUpdatedAt` when you edit real content.**
+
+### After deploying
+
+1. Submit the sitemap to **Bing Webmaster Tools** first — ChatGPT search uses the Bing index — then
+   Google Search Console. Set `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` if you verify by meta tag.
+2. Create a **Google Business Profile** for Delhi. For "web developer in Delhi" style questions this
+   is what assistants reach for, and it is free.
+3. Run `node scripts/indexnow.mjs https://your-domain.com` after a content deploy to notify Bing and
+   Yandex immediately. The key file in `public/` must stay published; it is not a secret.
 
 ---
 
@@ -189,7 +243,7 @@ fast for Indian visitors, and security headers are set in [`next.config.mjs`](ne
 
 | Name                                   | Required | Value                                                    |
 | -------------------------------------- | -------- | -------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`                 | yes      | The live URL, e.g. `https://www.jatinmangla.dev` — no trailing slash |
+| `NEXT_PUBLIC_SITE_URL`                 | yes      | The live URL, e.g. `https://growdhandha.vercel.app` — no trailing slash |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER`          | yes      | International format, digits only: `919540151718`        |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no       | Google Search Console token                              |
 

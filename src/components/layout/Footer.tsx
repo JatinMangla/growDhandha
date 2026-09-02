@@ -71,7 +71,12 @@ export function Footer() {
                 Sections
               </h2>
               <ul className="flex flex-col gap-2.5">
-                {[...navLinks, { label: 'Blog', href: '/blog' }, { label: 'Contact', href: '#contact' }].map(
+                {[
+                  ...navLinks,
+                  { label: 'Pricing details', href: '/pricing' },
+                  { label: 'Blog', href: '/blog' },
+                  { label: 'Contact', href: '#contact' },
+                ].map(
                   (link) => (
                     <li key={link.href}>
                       <a

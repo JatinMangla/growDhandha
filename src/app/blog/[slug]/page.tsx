@@ -1,9 +1,13 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { PostBody } from '@/components/blog/PostBody';
+import { ArticleJsonLd } from '@/components/seo/ArticleJsonLd';
+import { ButtonLink } from '@/components/ui/Button';
 import { LedgerRule } from '@/components/ui/LedgerRule';
 import { getPost, posts } from '@/data/posts';
+import { defaultEnquiry, site, whatsappLink } from '@/data/site';
 
 type PageProps = { params: Promise<{ slug: string }> };
 
@@ -22,14 +26,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: post.title,
     description: post.description,
+    keywords: post.tags,
     alternates: { canonical: `/blog/${post.slug}` },
     openGraph: {
       type: 'article',
       title: post.title,
       description: post.description,
+      url: `/blog/${post.slug}`,
       publishedTime: post.publishedAt,
+      modifiedTime: post.updatedAt,
+      authors: [site.name],
       tags: post.tags,
     },
+    twitter: { card: 'summary_large_image', title: post.title, description: post.description },
   };
 }
 
@@ -47,8 +56,12 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
+  const others = posts.filter((item) => item.slug !== post.slug).slice(0, 2);
+
   return (
     <article className="pb-20 pt-28 sm:pb-24 sm:pt-36">
+      <ArticleJsonLd post={post} />
+
       <div className="shell flex max-w-prose flex-col gap-6">
         <Link
           href="/blog"
@@ -62,19 +75,60 @@ export default async function BlogPostPage({ params }: PageProps) {
           <time dateTime={post.publishedAt}>{dateFormatter.format(new Date(post.publishedAt))}</time>
           <span aria-hidden="true">·</span>
           <span>{post.readingMinutes} min read</span>
+          {post.updatedAt !== post.publishedAt ? (
+            <>
+              <span aria-hidden="true">·</span>
+              <span>Updated {dateFormatter.format(new Date(post.updatedAt))}</span>
+            </>
+          ) : null}
         </div>
 
         <h1 className="text-display-lg">{post.title}</h1>
         <LedgerRule className="max-w-[140px]" />
-        <p className="text-lead text-muted">{post.description}</p>
 
-        <div className="flex flex-col gap-5 border-t border-line pt-8">
-          {post.paragraphs.map((paragraph, index) => (
-            <p key={index} className="text-base leading-relaxed text-muted">
-              {paragraph}
-            </p>
-          ))}
+        {/* The answer, first. Anything scanning this page — a person or a
+            model — gets the conclusion before any of the reasoning. */}
+        <p className="text-lead font-medium text-fg">{post.answer}</p>
+
+        <div className="border-t border-line pt-8">
+          <PostBody blocks={post.body} />
         </div>
+
+        <div className="mt-4 flex flex-col gap-4 rounded-card border border-line bg-sunken p-6 sm:p-8">
+          <p className="text-sm leading-relaxed text-muted">
+            Written by {site.name}, a developer in {site.location.city} who builds websites, apps and
+            billing software for Indian small businesses. If you have a question this did not answer,
+            message me — I reply within {site.responseTime}.
+          </p>
+          <ButtonLink
+            href={whatsappLink(defaultEnquiry)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fx-magnet w-full sm:w-auto sm:self-start"
+          >
+            Ask me directly
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </ButtonLink>
+        </div>
+
+        {others.length > 0 ? (
+          <nav aria-label="More articles" className="flex flex-col gap-4 border-t border-line pt-8">
+            <h2 className="eyebrow">Read next</h2>
+            <ul className="flex flex-col gap-3">
+              {others.map((other) => (
+                <li key={other.slug}>
+                  <Link
+                    href={`/blog/${other.slug}`}
+                    className="tap-target inline-flex items-center gap-2 font-display text-base font-semibold text-fg transition-colors hover:text-brand-ink"
+                  >
+                    {other.title}
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
 
         {post.tags.length > 0 ? (
           <ul className="flex flex-wrap gap-2 border-t border-line pt-6">

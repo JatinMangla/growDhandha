@@ -25,7 +25,12 @@ export type Stat = {
 export type PricingTier = {
   id: string;
   name: string;
+  /** Display form, e.g. '₹4,999'. */
   price: string;
+  /** Numeric INR value for structured data, so an assistant can quote it. */
+  priceValue: number;
+  /** True when `priceValue` is a floor rather than the price. */
+  priceIsFrom?: boolean;
   priceNote: string;
   bestFor: string;
   includes: string[];
@@ -79,6 +84,37 @@ export type TechGroup = {
   id: string;
   label: string;
   items: string[];
+};
+
+/**
+ * Article body blocks.
+ *
+ * A flat list of paragraphs extracts badly: retrieval models look for a direct
+ * answer near the top and for question-shaped headings, and find neither in a
+ * wall of text. These blocks give each article real structure, and the `qa`
+ * blocks are emitted as `FAQPage` structured data as well as rendered.
+ */
+export type PostBlock =
+  | { kind: 'heading'; text: string }
+  | { kind: 'paragraph'; text: string }
+  | { kind: 'list'; items: string[]; ordered?: boolean }
+  /** The direct answer, lifted out of the prose so it can be quoted alone. */
+  | { kind: 'callout'; text: string }
+  | { kind: 'qa'; question: string; answer: string };
+
+export type Post = {
+  slug: string;
+  title: string;
+  description: string;
+  /** ISO date, e.g. '2026-09-02'. */
+  publishedAt: string;
+  /** ISO date of the last substantive edit; feeds sitemap and dateModified. */
+  updatedAt: string;
+  readingMinutes: number;
+  tags: string[];
+  /** One-sentence answer to the title, shown first and used as the summary. */
+  answer: string;
+  body: PostBlock[];
 };
 
 export type NavLink = {
