@@ -25,9 +25,16 @@ Other scripts:
 | `npm run lint`      | ESLint (Next.js + TypeScript rules, flat config)  |
 | `npm run typecheck` | `tsc --noEmit`, strict mode, no `any`             |
 | `npm test`          | Vitest unit and route tests                        |
+| `npm run test:e2e`  | Playwright browser tests against a production build (run `build` first) |
+| `npm run lighthouse`| Lighthouse CI budgets from `lighthouserc.json` (run `build` first) |
 
-Every push and pull request runs typecheck → lint → test → build in GitHub Actions
-([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
+Every push and pull request runs typecheck → lint → unit tests → build → browser tests → Lighthouse
+in GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Failed browser tests upload
+a trace; Lighthouse reports are always uploaded as a build artifact.
+
+First time running the browser tests locally: `npx playwright install chromium`. For Lighthouse
+locally, point it at that browser, e.g. in PowerShell
+`$env:CHROME_PATH = (Get-ChildItem "$env:LOCALAPPDATA\ms-playwright" -Recurse -Filter chrome.exe | Select-Object -First 1).FullName`.
 
 ---
 
@@ -63,6 +70,20 @@ Add the **`showcase`** topic to any public repo on GitHub (repo page → ⚙ nex
 Within a day it appears in the "Recently shipped" strip under the portfolio, and in `llms-full.txt`
 ([`src/lib/github.ts`](src/lib/github.ts), revalidated daily). Repos that already have a full card in
 `projects.ts` are not repeated. If GitHub is unreachable the section simply does not render.
+
+### The Hindi page (`/hi`)
+
+A single-page pitch in Hindi, for owners more at ease reading Hindi: services, pricing, process,
+FAQ and contact, with WhatsApp messages pre-filled in Hindi. Copy lives in
+[`src/data/hi.ts`](src/data/hi.ts); **prices and the users figure are pulled from `pricing.ts` and
+`stats.ts`**, so it can never quote a different number. The wording itself is hand-maintained — when
+English copy changes in substance (a timeline, a support period), update the matching line there,
+and have a native speaker read new text before it goes live.
+
+It uses the device's own Devanagari font (Noto Sans Devanagari on Android, Nirmala UI on Windows,
+Kohinoor Devanagari on Apple) instead of downloading one; a web font cost 122 KB and about a second of
+LCP. Both language versions link to each other with `hreflang`, and "हिंदी में पढ़ें" appears in the
+hero and footer.
 
 ### Publishing a blog post
 
@@ -307,21 +328,33 @@ add the `A` / `CNAME` records Vercel shows. HTTPS is issued automatically.
 
 ## Accessibility & performance
 
-Measured with Lighthouse (mobile preset) against `npm run build && npm start`:
+Measured with Lighthouse CI (default mobile emulation, simulated throttling) against
+`npm run build && npm start`, on 2026-09-24:
 
-| Category       | Score  |
-| -------------- | ------ |
-| Performance    | 93     |
-| Accessibility  | 100    |
-| Best Practices | 100    |
-| SEO            | 100    |
+| Page                       | Performance | Accessibility | Best practices | SEO |
+| -------------------------- | ----------- | ------------- | -------------- | --- |
+| `/` (median of 5 runs)     | 87          | 100           | 100            | 100 |
+| `/hi`                      | 87          | 100           | 100            | 100 |
+| `/pricing`                 | 90          | 100           | 100            | 100 |
+| `/blog/…` (an article)     | 90          | 100           | 100            | 100 |
 
-Performance is a median of five warm runs; it varies a few points with machine load, and should read
-higher on Vercel's CDN than on a local server. Total blocking time is ~100ms and CLS is 0.005.
+Homepage LCP is ~3.4 s and total blocking time ~210 ms under that throttling; CLS is 0. An earlier
+version of this README claimed 93 for the homepage; on the same machine the pre-audit build measured a
+median of 81, so treat single numbers with suspicion. **Local performance scores swing by 20+ points
+between runs** — compare medians of several runs, build against build, before concluding anything.
+CI enforces accessibility, best practices and SEO ≥ 95 and CLS ≤ 0.1 as hard failures, and only warns
+on performance for that reason.
 
-Accessibility is also verified separately with axe-core against the **resting** state in both themes
-(zero WCAG A/AA violations). That matters here: Lighthouse samples mid-animation, so a fade-in caught
-in flight reports contrast that the settled element does not actually have.
+Accessibility is verified with axe-core in the Playwright suite against the **resting** state in both
+themes (zero WCAG A/AA violations, desktop and phone). That matters here: Lighthouse samples
+mid-animation, so a fade-in caught in flight reports contrast that the settled element does not
+actually have.
+
+Two measured lessons worth keeping:
+
+- **Don't prefetch from links that appear on every page.** The header logo's `<Link>` prefetched the
+  whole homepage payload on every page load; `prefetch={false}` removed ~43 KB of requests per view.
+- **Don't download a Devanagari web font.** See the Hindi page section above.
 
 What is in place:
 

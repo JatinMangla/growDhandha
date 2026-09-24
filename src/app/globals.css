@@ -176,6 +176,50 @@
     @apply relative rounded-card border border-line bg-surface;
   }
 
+  /* --- Hindi pages -----------------------------------------------------
+     Sora and Plus Jakarta Sans carry no Devanagari. Rather than download a
+     web font for it (Noto Sans Devanagari is 122 KB and cost /hi about a
+     second of LCP), Devanagari falls through to the device's own font:
+     Noto Sans Devanagari is Android's system font, Nirmala UI ships with
+     Windows, Kohinoor Devanagari with iOS and macOS. Latin words in the
+     copy (WhatsApp, Google) still use the site's fonts.
+
+     Devanagari's headstroke and vowel marks need far more line height than
+     the tight Latin display scale, which would otherwise clip them, and
+     the eyebrow's uppercase tracking means nothing in a script without
+     case.                                                              */
+  .lang-hi {
+    --devanagari: 'Noto Sans Devanagari', 'Nirmala UI', 'Kohinoor Devanagari', 'Devanagari Sangam MN',
+      'Mangal', sans-serif;
+    font-family: var(--font-body), var(--devanagari);
+  }
+
+  .lang-hi :is(h1, h2, h3, h4) {
+    font-family: var(--font-display), var(--devanagari);
+  }
+
+  .lang-hi .eyebrow {
+    font-family: var(--font-body), var(--devanagari);
+  }
+
+  .lang-hi :is(h1, h2, h3) {
+    line-height: 1.35;
+    letter-spacing: 0;
+  }
+
+  /* The space character comes from the Latin body font, whose narrow
+     spaces run Devanagari words together; open them up slightly. */
+  .lang-hi :is(p, li, dd) {
+    line-height: 1.8;
+    word-spacing: 0.12em;
+  }
+
+  .lang-hi .eyebrow {
+    font-size: 0.875rem;
+    letter-spacing: 0.02em;
+    text-transform: none;
+  }
+
   /* --- Scroll reveals ---------------------------------------------------
      Driven by one shared IntersectionObserver in Reveal.tsx, which only
      toggles `.is-revealed`. Scoped to `.js` so that with JavaScript off the

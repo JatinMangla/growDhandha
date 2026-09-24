@@ -1,5 +1,6 @@
 import { ArrowRight, BadgeCheck, Clock, MessageCircle, ShieldCheck } from 'lucide-react';
 import type { CSSProperties } from 'react';
+import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/Button';
 import { LedgerRule } from '@/components/ui/LedgerRule';
 import { SplitPhrase, SplitWords } from '@/components/ui/SplitWords';
@@ -42,6 +43,15 @@ export function Hero() {
           <span className="font-mono text-eyebrow uppercase text-muted">
             {site.location.city}, {site.location.country}
           </span>
+          <Link
+            href="/hi"
+            prefetch={false}
+            lang="hi"
+            hrefLang="hi-IN"
+            className="tap-target inline-flex items-center text-sm font-medium text-muted underline underline-offset-2 transition-colors hover:text-brand-ink"
+          >
+            हिंदी में पढ़ें
+          </Link>
         </div>
 
         {/* The headline assembles word by word. The price keeps its gradient

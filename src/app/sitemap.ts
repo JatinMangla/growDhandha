@@ -17,7 +17,20 @@ export default function sitemap(): MetadataRoute.Sitemap {
   }, staticUpdated);
 
   return [
-    { url: `${siteUrl}/`, lastModified: staticUpdated, changeFrequency: 'monthly', priority: 1 },
+    {
+      url: `${siteUrl}/`,
+      lastModified: staticUpdated,
+      changeFrequency: 'monthly',
+      priority: 1,
+      alternates: { languages: { 'en-IN': `${siteUrl}/`, 'hi-IN': `${siteUrl}/hi` } },
+    },
+    {
+      url: `${siteUrl}/hi`,
+      lastModified: staticUpdated,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+      alternates: { languages: { 'en-IN': `${siteUrl}/`, 'hi-IN': `${siteUrl}/hi` } },
+    },
     {
       url: `${siteUrl}/pricing`,
       lastModified: staticUpdated,

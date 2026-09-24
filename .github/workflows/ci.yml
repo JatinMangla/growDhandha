@@ -12,7 +12,10 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+    env:
+      # Matches the port Lighthouse serves on, so canonical URLs resolve locally.
+      NEXT_PUBLIC_SITE_URL: http://localhost:3200
     steps:
       - uses: actions/checkout@v4
 
@@ -28,5 +31,25 @@ jobs:
       # A production build catches what the type-checker cannot: invalid page
       # exports, metadata errors and prerender failures.
       - run: npm run build
-        env:
-          NEXT_PUBLIC_SITE_URL: https://example.com
+
+      # Browser tests against the build above: CSP errors, WCAG A/AA (axe) in
+      # both themes, navigation, the mobile menu, the contact hand-off.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
+      # Lighthouse budgets (lighthouserc.json). Accessibility, SEO, best
+      # practices and layout shift fail the build; performance only warns,
+      # because runner CPU speed varies from run to run.
+      - run: npm run lighthouse
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: .lighthouseci/reports/
+          retention-days: 14

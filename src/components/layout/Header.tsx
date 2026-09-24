@@ -83,8 +83,12 @@ export function Header() {
       )}
     >
       <div className="shell flex h-16 items-center justify-between gap-4 sm:h-20">
+        {/* No prefetch: the logo is on every page, and prefetching the whole
+            homepage payload on each load cost ~0.5s of LCP on a throttled phone
+            for a click few visitors make. */}
         <Link
           href="/"
+          prefetch={false}
           className="tap-target group flex items-center gap-2.5 font-display text-base font-semibold tracking-tight sm:text-lg"
         >
           <span
