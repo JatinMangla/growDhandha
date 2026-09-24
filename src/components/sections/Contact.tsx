@@ -70,7 +70,9 @@ export function Contact() {
         </div>
 
         <Reveal delay={0.1}>
-          <ContactForm />
+          {/* Read on the server, so the key's presence decides the copy the
+              visitor sees without the key itself ever reaching the browser. */}
+          <ContactForm leadBackup={Boolean(process.env.RESEND_API_KEY && process.env.CONTACT_TO_EMAIL)} />
         </Reveal>
       </div>
     </section>

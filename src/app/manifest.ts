@@ -27,19 +27,15 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ['business', 'productivity'],
     background_color: '#FBF7F0',
     theme_color: '#FBF7F0',
+    // Android offers "Install app" only with PNGs at 192 and 512; the SVG
+    // covers everything else. The maskable icon keeps its monogram inside the
+    // launcher's safe zone. (The 180px apple-icon is for iOS, which reads it
+    // from a <link> tag, not from here.)
     icons: [
-      {
-        src: '/icon.svg',
-        type: 'image/svg+xml',
-        sizes: 'any',
-        purpose: 'any',
-      },
-      {
-        src: '/apple-icon',
-        type: 'image/png',
-        sizes: '180x180',
-        purpose: 'maskable',
-      },
+      { src: '/icon.svg', type: 'image/svg+xml', sizes: 'any', purpose: 'any' },
+      { src: '/icon-192.png', type: 'image/png', sizes: '192x192', purpose: 'any' },
+      { src: '/icon-512.png', type: 'image/png', sizes: '512x512', purpose: 'any' },
+      { src: '/icon-maskable-512.png', type: 'image/png', sizes: '512x512', purpose: 'maskable' },
     ],
   };
 }

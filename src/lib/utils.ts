@@ -7,3 +7,8 @@ export function cn(...classes: Array<string | false | null | undefined>): string
 export function formatIndianNumber(value: number): string {
   return new Intl.NumberFormat('en-IN').format(value);
 }
+
+/** 4999 -> "₹4,999". The one place a rupee amount is turned into display text. */
+export function formatINR(value: number): string {
+  return `₹${formatIndianNumber(value)}`;
+}

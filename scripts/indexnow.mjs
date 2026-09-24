@@ -11,17 +11,6 @@
  */
 const KEY = '4f79d25c0a997cce966a7dc2411d4658';
 
-const paths = [
-  '/',
-  '/pricing',
-  '/blog',
-  '/blog/what-a-business-website-costs-in-india',
-  '/blog/website-or-mobile-app-which-first',
-  '/blog/get-your-business-on-google-free',
-  '/blog/billing-software-vs-excel',
-  '/blog/questions-to-ask-a-web-developer',
-];
-
 const site = process.argv[2];
 
 if (!site || !site.startsWith('https://')) {
@@ -31,6 +20,16 @@ if (!site || !site.startsWith('https://')) {
 
 const host = new URL(site).host;
 
+// The URL list comes from the live sitemap, which is generated from the route
+// tree and src/data/posts.ts. A hand-kept list here drifted the moment a post
+// was added or renamed.
+const sitemap = await fetch(`${site}/sitemap.xml`);
+if (!sitemap.ok) {
+  console.error(`Could not read ${site}/sitemap.xml: HTTP ${sitemap.status}`);
+  process.exit(1);
+}
+const urlList = [...(await sitemap.text()).matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1]);
+
 const response = await fetch('https://api.indexnow.org/IndexNow', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json; charset=utf-8' },
@@ -38,13 +37,13 @@ const response = await fetch('https://api.indexnow.org/IndexNow', {
     host,
     key: KEY,
     keyLocation: `${site}/${KEY}.txt`,
-    urlList: paths.map((path) => `${site}${path}`),
+    urlList,
   }),
 });
 
 // 200 and 202 both mean accepted; 202 means the key is still being validated.
 if (response.ok) {
-  console.log(`Submitted ${paths.length} URLs for ${host} (HTTP ${response.status})`);
+  console.log(`Submitted ${urlList.length} URLs for ${host} (HTTP ${response.status})`);
 } else {
   console.error(`IndexNow rejected the submission: HTTP ${response.status}`);
   console.error(await response.text());

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: 'Blog — plain advice on websites, apps and software for Indian businesses',
   description:
     'Straightforward guides on what a website should cost, whether you need an app, and how to get your business found on Google. Written for owners, not developers.',
-  alternates: { canonical: '/blog' },
+  alternates: { canonical: '/blog', types: { 'text/markdown': '/blog.md' } },
 };
 
 const dateFormatter = new Intl.DateTimeFormat('en-IN', {

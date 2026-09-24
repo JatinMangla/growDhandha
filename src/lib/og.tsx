@@ -1,11 +1,14 @@
 import { ImageResponse } from 'next/og';
 import { site } from '@/data/site';
+import { headlineUsers } from '@/data/stats';
 
 /**
  * Satori has no glyph for the rupee sign in its fallback font, so the card
  * spells it out. Everywhere else on the site the real symbol is used.
  */
 const priceForCard = site.startingPrice.replace('₹', 'Rs. ');
+
+export const OG_ALT = `${site.name} — websites and apps for Indian businesses, starting at ${priceForCard}`;
 
 export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_CONTENT_TYPE = 'image/png';
@@ -75,7 +78,7 @@ export function renderOgImage(): ImageResponse {
         </div>
 
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          {['10,500+ users served', '5+ years experience', 'Fixed price, no surprises'].map((chip) => (
+          {[`${headlineUsers} users served`, `${site.yearsExperience}+ years experience`, 'Fixed price, no surprises'].map((chip) => (
             <div
               key={chip}
               style={{

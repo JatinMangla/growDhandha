@@ -1,5 +1,5 @@
 import { faqs } from '@/data/faqs';
-import { pricingTiers } from '@/data/pricing';
+import { lowestPrice, pricingTiers } from '@/data/pricing';
 import { processSteps } from '@/data/process';
 import { services } from '@/data/services';
 import { site, siteUrl } from '@/data/site';
@@ -19,7 +19,7 @@ const person: Schema = {
   telephone: site.phone,
   email: site.email,
   knowsLanguage: site.languages,
-  sameAs: [site.socials.linkedin, site.socials.github],
+  sameAs: [site.socials.linkedin, site.socials.github, site.socials.portfolio],
   address: {
     '@type': 'PostalAddress',
     addressLocality: site.location.city,
@@ -28,7 +28,7 @@ const person: Schema = {
   },
   alumniOf: {
     '@type': 'CollegeOrUniversity',
-    name: 'Galgotias University',
+    name: site.education,
   },
   worksFor: {
     '@type': 'Organization',
@@ -56,12 +56,14 @@ const professionalService: Schema = {
   email: site.email,
   priceRange: '₹₹',
   founder: { '@id': personId },
+  /* A service-area business: there is no shopfront, so no street address or
+     postcode. Publishing an invented one (this used to send the city name as
+     the street and Connaught Place's PIN) is exactly what Google's local
+     guidelines prohibit. `areaServed` carries the geography instead. */
   address: {
     '@type': 'PostalAddress',
-    streetAddress: site.location.city,
     addressLocality: site.location.city,
     addressRegion: site.location.region,
-    postalCode: site.location.postalCode,
     addressCountry: site.location.countryCode,
   },
   areaServed: [
@@ -92,7 +94,7 @@ const professionalService: Schema = {
     priceSpecification: {
       '@type': 'PriceSpecification',
       priceCurrency: 'INR',
-      minPrice: 4999,
+      minPrice: lowestPrice,
     },
   })),
   /* Real per-tier prices, so an assistant can state a figure and attribute it
@@ -136,7 +138,7 @@ const howTo: Schema = {
   estimatedCost: {
     '@type': 'MonetaryAmount',
     currency: 'INR',
-    minValue: 4999,
+    minValue: lowestPrice,
   },
   step: processSteps.map((processStep, index) => ({
     '@type': 'HowToStep',
@@ -166,7 +168,7 @@ const website: Schema = {
   publisher: { '@id': businessId },
 };
 
-const graph = {
+export const homepageGraph = {
   '@context': 'https://schema.org',
   '@graph': [website, professionalService, person, faqPage, howTo],
 };
@@ -180,7 +182,7 @@ export function JsonLd() {
     <script
       type="application/ld+json"
       // Content is authored in this repo, never user input.
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }}
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(homepageGraph) }}
     />
   );
 }

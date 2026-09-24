@@ -28,6 +28,12 @@ export function Counter({ value, prefix = '', suffix = '', durationMs = 1600 }: 
     if (!node) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    // The server renders the final value. If the number is already on screen
+    // when this runs, the visitor has read it — zeroing it now flashed
+    // "10,500 → 0 → 10,500". Only count up numbers that are still out of view.
+    if (node.getBoundingClientRect().top < window.innerHeight) return;
+    setDisplay(0);
+
     let frame = 0;
     let start = 0;
 
@@ -43,7 +49,6 @@ export function Counter({ value, prefix = '', suffix = '', durationMs = 1600 }: 
         const entry = entries[0];
         if (!entry?.isIntersecting) return;
         observer.disconnect();
-        setDisplay(0);
         frame = requestAnimationFrame(step);
       },
       { rootMargin: '0px 0px -60px 0px', threshold: 0.1 },

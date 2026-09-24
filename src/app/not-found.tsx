@@ -52,7 +52,7 @@ export default function NotFound() {
             {[...navLinks, { label: 'Blog', href: '/blog' }].map((link) => (
               <li key={link.href}>
                 <Link
-                  href={link.href.startsWith('#') ? `/${link.href}` : link.href}
+                  href={link.href}
                   className="tap-target inline-flex items-center rounded-pill border border-line bg-surface px-4 py-2.5 text-sm text-fg transition-colors hover:border-brand hover:text-brand-ink"
                 >
                   {link.label}
