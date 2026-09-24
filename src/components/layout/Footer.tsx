@@ -133,6 +133,15 @@ export function Footer() {
               &copy; {year} {site.name}. All rights reserved.{' '}
               <a href="/privacy" className="underline underline-offset-2 transition-colors hover:text-brand-ink">
                 Privacy
+              </a>{' '}
+              ·{' '}
+              <a
+                href="/hi"
+                lang="hi"
+                hrefLang="hi-IN"
+                className="underline underline-offset-2 transition-colors hover:text-brand-ink"
+              >
+                हिंदी में पढ़ें
               </a>
             </p>
             <p>Built and maintained by hand — no page builders.</p>

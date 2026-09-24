@@ -60,6 +60,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: '/',
     types: { 'text/markdown': '/index.md' },
+    languages: { 'en-IN': '/', 'hi-IN': '/hi', 'x-default': '/' },
   },
   category: 'technology',
   openGraph: {
