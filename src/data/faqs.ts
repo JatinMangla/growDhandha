@@ -1,4 +1,6 @@
 import type { Faq } from '@/types';
+import { startingPrice, tier } from './pricing';
+import { headlineUsers } from './stats';
 
 /**
  * These double as FAQPage structured data, so answers are written as
@@ -13,15 +15,14 @@ export const faqs: Faq[] = [
   },
   {
     id: 'whats-included',
-    question: 'What exactly do I get for ₹4,999?',
+    question: `What exactly do I get for ${startingPrice}?`,
     answer:
       'A complete one-page website that works on every phone and computer: your services, photos, prices, an enquiry form, and WhatsApp and call buttons on every screen. It includes an SSL certificate, Google search setup, and 30 days of support after launch. It is a finished website, not a demo or a trial.',
   },
   {
     id: 'payment',
     question: 'Do I have to pay everything upfront?',
-    answer:
-      'No. You pay 50% to start and 50% when the work is finished and you are happy with it. For custom projects above ₹39,999 the payment is split across project milestones. Every payment has a proper invoice.',
+    answer: `No. You pay 50% to start and 50% when the work is finished and you are happy with it. For custom projects above ${tier('custom').price.replace(/^From /, '')} the payment is split across project milestones. Every payment has a proper invoice.`,
   },
   {
     id: 'self-edit',
@@ -50,7 +51,6 @@ export const faqs: Faq[] = [
   {
     id: 'why-cheap',
     question: 'Why is your price so much lower than an agency?',
-    answer:
-      'An agency price includes an office, a sales team, and account managers. I work directly with you, so you pay for the development and nothing else. The code and the standards are the same ones I use on an enterprise fintech platform serving over 10,500 users.',
+    answer: `An agency price includes an office, a sales team, and account managers. I work directly with you, so you pay for the development and nothing else. The code and the standards are the same ones I use on an enterprise fintech platform serving ${headlineUsers} users.`,
   },
 ];

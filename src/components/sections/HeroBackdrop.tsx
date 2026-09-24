@@ -34,17 +34,19 @@ export function HeroBackdrop() {
       <div className="hero-scanline" />
 
       {/* Colour washes. The wrapper parallaxes, the inner element drifts, so
-          the two transforms compose instead of overwriting each other. */}
+          the two transforms compose instead of overwriting each other. Below
+          `sm` they hold still: a 40rem animated blur is real GPU and battery
+          cost on a phone for motion few would notice. */}
       <div className="parallax-layer absolute inset-0" style={layer(26)}>
         <div
-          className="animate-wash-a absolute -left-[18%] -top-[28%] h-[42rem] w-[42rem] rounded-full opacity-[0.22] blur-[110px] will-change-transform dark:opacity-[0.30]"
+          className="animate-wash-a absolute -left-[18%] -top-[28%] h-[42rem] w-[42rem] rounded-full opacity-[0.22] blur-[110px] will-change-transform max-sm:animate-none max-sm:will-change-auto dark:opacity-[0.30]"
           style={{ background: 'radial-gradient(circle, rgb(var(--c-brand)) 0%, transparent 65%)' }}
         />
       </div>
 
       <div className="parallax-layer absolute inset-0" style={layer(18)}>
         <div
-          className="animate-wash-b absolute -right-[14%] top-[6%] h-[34rem] w-[34rem] rounded-full opacity-[0.18] blur-[110px] will-change-transform dark:opacity-[0.26]"
+          className="animate-wash-b absolute -right-[14%] top-[6%] h-[34rem] w-[34rem] rounded-full opacity-[0.18] blur-[110px] will-change-transform max-sm:animate-none max-sm:will-change-auto dark:opacity-[0.26]"
           style={{ background: 'radial-gradient(circle, rgb(var(--c-accent)) 0%, transparent 65%)' }}
         />
       </div>

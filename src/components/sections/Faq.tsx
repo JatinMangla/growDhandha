@@ -12,7 +12,9 @@ import { cn } from '@/lib/utils';
 /**
  * Accordion built on buttons + aria-expanded rather than <details>, so the
  * open/close transition is controllable and keyboard behaviour is explicit.
- * Answers stay in the DOM, so they are indexable and findable with Ctrl+F.
+ * Answers stay in the DOM, so crawlers index them; collapsed panels are
+ * `inert`, so a screen reader or the Tab key does not wander into text that is
+ * visually closed.
  */
 export function Faq() {
   const [openId, setOpenId] = useState<string | null>(faqs[0]?.id ?? null);
@@ -74,6 +76,7 @@ export function Faq() {
                     id={`faq-panel-${faq.id}`}
                     role="region"
                     aria-labelledby={`faq-trigger-${faq.id}`}
+                    inert={!isOpen}
                     className={cn(
                       'grid transition-all duration-300 ease-entrance',
                       isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',

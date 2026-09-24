@@ -2,6 +2,7 @@
 
 import { AnimatePresence, domAnimation, LazyMotion, m, useReducedMotion } from 'framer-motion';
 import { Phone } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { ButtonLink } from '@/components/ui/Button';
 import { defaultEnquiry, navLinks, site, whatsappLink } from '@/data/site';
 import { EASE_ENTRANCE } from '@/lib/motion';
@@ -22,6 +23,13 @@ type MobileMenuProps = {
  */
 export function MobileMenu({ open, onNavigate }: MobileMenuProps) {
   const reduceMotion = useReducedMotion();
+  const navRef = useRef<HTMLElement>(null);
+
+  // Opening the menu moves focus into it, so a keyboard user lands on the
+  // first link instead of staying on the toggle behind an overlay.
+  useEffect(() => {
+    if (open) navRef.current?.querySelector<HTMLElement>('a[href]')?.focus();
+  }, [open]);
 
   const panel = reduceMotion
     ? { initial: { opacity: 1 }, animate: { opacity: 1 }, exit: { opacity: 1 } }
@@ -50,6 +58,7 @@ export function MobileMenu({ open, onNavigate }: MobileMenuProps) {
             className="overflow-hidden border-t border-line bg-bg lg:hidden"
           >
             <m.nav
+              ref={navRef}
               aria-label="Mobile"
               className="shell flex flex-col gap-1 py-4"
               initial="hidden"
@@ -66,7 +75,7 @@ export function MobileMenu({ open, onNavigate }: MobileMenuProps) {
                 >
                   {link.label}
                   <span aria-hidden="true" className="font-mono text-xs text-subtle">
-                    {link.href}
+                    {link.href.replace(/^\/#/, '#')}
                   </span>
                 </m.a>
               ))}
@@ -90,6 +99,7 @@ export function MobileMenu({ open, onNavigate }: MobileMenuProps) {
                   rel="noopener noreferrer"
                   variant="whatsapp"
                   size="lg"
+                  data-cta="mobile-menu"
                   onClick={onNavigate}
                 >
                   Chat on WhatsApp

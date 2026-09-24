@@ -22,8 +22,12 @@ Other scripts:
 | `npm run dev`       | Development server with hot reload                |
 | `npm run build`     | Production build                                  |
 | `npm run start`     | Serve the production build locally                |
-| `npm run lint`      | ESLint (Next.js + TypeScript rules)               |
+| `npm run lint`      | ESLint (Next.js + TypeScript rules, flat config)  |
 | `npm run typecheck` | `tsc --noEmit`, strict mode, no `any`             |
+| `npm test`          | Vitest unit and route tests                        |
+
+Every push and pull request runs typecheck → lint → test → build in GitHub Actions
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
 
 ---
 
@@ -35,12 +39,13 @@ everywhere it appears — including the SEO structured data and the sitemap.
 | File                                                        | What it controls                                                   |
 | ----------------------------------------------------------- | ------------------------------------------------------------------ |
 | [`src/data/site.ts`](src/data/site.ts)                       | Name, phone, email, WhatsApp number, location, nav links, years of experience |
-| [`src/data/stats.ts`](src/data/stats.ts)                     | The four animated counters in the trust bar                        |
+| [`src/data/pricing.ts`](src/data/pricing.ts)                 | **Every price on the site** — hero, FAQ, structured data and OG card all derive from it |
+| [`src/data/stats.ts`](src/data/stats.ts)                     | The trust-bar counters, and `headlineUsers` quoted elsewhere       |
 | [`src/data/services.ts`](src/data/services.ts)               | The six service cards                                              |
 | [`src/data/differentiators.ts`](src/data/differentiators.ts) | The "why work with me" objection answers                           |
-| [`src/data/projects.ts`](src/data/projects.ts)               | Portfolio cards (problem → solution → result)                      |
+| [`src/data/projects.ts`](src/data/projects.ts)               | Portfolio cards (problem → solution → result), labelled by `kind`  |
+| [`src/data/testimonials.ts`](src/data/testimonials.ts)       | Client quotes — the section stays hidden while this is empty       |
 | [`src/data/process.ts`](src/data/process.ts)                 | The five process steps                                             |
-| [`src/data/pricing.ts`](src/data/pricing.ts)                 | The three tiers, the custom option, and the assurance strip        |
 | [`src/data/tech.ts`](src/data/tech.ts)                       | The tech stack groups and the ticker                               |
 | [`src/data/faqs.ts`](src/data/faqs.ts)                       | The FAQ accordion — also emitted as `FAQPage` structured data      |
 | [`src/data/posts.ts`](src/data/posts.ts)                     | The five published articles and the planned-topics list            |
@@ -48,7 +53,16 @@ everywhere it appears — including the SEO structured data and the sitemap.
 ### Adding a project
 
 Copy any object in `src/data/projects.ts`, change the fields, keep `id` unique. The grid handles
-layout, animation and the monogram card art automatically.
+layout, animation and the monogram card art automatically. Set `kind` honestly (`product`, `client`
+or `employer`) — it is printed on the card. Drop a screenshot in `public/projects/` and set `image` to
+replace the monogram. Apps behind a private login should link `repo`, not `href`.
+
+### Recently shipped (automatic, from GitHub)
+
+Add the **`showcase`** topic to any public repo on GitHub (repo page → ⚙ next to *About* → Topics).
+Within a day it appears in the "Recently shipped" strip under the portfolio, and in `llms-full.txt`
+([`src/lib/github.ts`](src/lib/github.ts), revalidated daily). Repos that already have a full card in
+`projects.ts` are not repeated. If GitHub is unreachable the section simply does not render.
 
 ### Publishing a blog post
 
@@ -133,8 +147,10 @@ cached on enter rather than measured per move — writing custom properties inva
 re-measuring every frame is the usual way an effect like this turns into jank.
 
 **3. Ambient loops.** A conic-gradient aurora ring travelling around the featured price tier and the
-availability badge, driven by an `@property`-registered angle so it can actually interpolate; a band
-of light crossing the hero grid; two counter-scrolling tech lanes.
+availability badge, driven by an `@property`-registered angle so it can actually interpolate. That one
+repaints every frame, so it runs three laps and rests (another lap on hover) instead of looping
+forever. Also a band of light crossing the hero grid, and two counter-scrolling tech lanes. The two
+large blurred hero washes hold still below the `sm` breakpoint.
 
 The headline assembles word by word out of per-word clipping masks
 ([`SplitWords`](src/components/ui/SplitWords.tsx)) on CSS `animation-delay` — transform only, no
@@ -160,12 +176,24 @@ states are scoped to a `.js` class set before first paint.
 ## How the contact form works
 
 The form validates on the client ([`src/lib/validation.ts`](src/lib/validation.ts)), sanitises every
-field, then opens WhatsApp with the enquiry pre-filled. **There is no backend and no third-party form
-service**, so nothing a visitor types is stored anywhere, and there are no API keys to leak. An email
-address is offered as a fallback.
+field, then opens WhatsApp with the enquiry pre-filled. The phone field is optional — WhatsApp already
+shows the sender's number. Nothing a visitor types is stored anywhere.
 
-If you later want enquiries in your inbox as well, add a route handler at `src/app/api/contact/` and
-POST the same validated payload to it before the WhatsApp hand-off.
+**Lead backup (optional).** Set `RESEND_API_KEY` and `CONTACT_TO_EMAIL` and each submission is also
+beaconed to [`/api/contact`](src/app/api/contact/route.ts) and emailed to you, so an enquiry is not lost
+when someone opens WhatsApp and never presses send. The route re-validates server-side, rejects
+cross-origin posts, drops honeypot submissions and rate-limits per IP. The form's privacy line and
+[`/privacy`](src/app/privacy/page.tsx) change their wording automatically when this is on.
+Redeploy after setting the variables — the homepage is static.
+
+## Measuring conversions
+
+Set `NEXT_PUBLIC_UMAMI_WEBSITE_ID` (Umami Cloud, free, cookieless) and every WhatsApp, call and email
+tap is recorded as `whatsapp_click` / `call_click` / `email_click`, labelled with where on the page it
+happened (`hero`, `header`, `floating`, `tier-business`, `faq`, …). One delegated listener in
+[`ConversionTracking`](src/components/layout/ConversionTracking.tsx) does this — buttons need no
+analytics code. To label a new CTA explicitly, add `data-cta="name"`; otherwise the id of its section
+is used. Unset, no script loads at all.
 
 ---
 
@@ -182,7 +210,11 @@ Handled in-repo, nothing to configure:
   `BreadcrumbList` and their own `FAQPage` ([`ArticleJsonLd.tsx`](src/components/seo/ArticleJsonLd.tsx)).
   Every entity cross-references by `@id`, so there is one business and one person across the site.
 - `sitemap.xml` and `robots.txt` generated from the route tree.
-- `/blog` with five published guides, and a dedicated `/pricing` page.
+- `/blog` with five published guides, a dedicated `/pricing` page, and `/privacy`.
+- The business is declared as a **service-area business**: no street address or postcode is published,
+  because there is no shopfront and an invented one breaks Google's local guidelines.
+- Expect no FAQ or HowTo *rich results* from Google (restricted to government/health sites and retired,
+  respectively, since 2023). The markup still helps other engines and AI answers read the page.
 
 ### AI crawlers
 
@@ -198,18 +230,21 @@ repeat `Disallow: /api/`. Adding a bot without that would grant it *more* access
 
 `/llms.txt` and `/llms-full.txt` are generated from `src/data/*` by
 [`content-markdown.ts`](src/lib/content-markdown.ts), so they cannot drift the way the previous
-hand-written file did. Any page is also available as markdown two ways — a `.md` suffix
-(`/pricing.md`) or an `Accept: text/markdown` header — via
-[`middleware.ts`](src/middleware.ts) rewriting to [`/api/md`](src/app/api/md/route.ts).
+hand-written file did. Any page is also available as markdown with a `.md` suffix (`/pricing.md`,
+`/blog/<slug>.md`, `/index.md`), through static rewrites in [`next.config.ts`](next.config.ts) to
+[`/api/md`](src/app/api/md/[[...path]]/route.ts); each page advertises its own `.md` alternate.
 
 Two things worth knowing before you invest more here:
 
 - **Calibrate the expectation.** The best public measurement of markdown variants found they receive
   a negligible share of AI citations, and Google has stated `llms.txt` does not influence ranking.
   What they reliably do is cut an agent's token cost. Treat them as cheap insurance, not a lever.
-- **The `Accept` check compares q-values.** Browsers send `Accept: text/html,…,*/*;q=0.8`, so a naive
-  substring test would serve markdown to every human visitor. The middleware requires markdown to be
-  ranked *above* HTML, and there is a regression test for exactly that.
+- **The path travels as route segments, never a query string.** A query added by a rewrite does not
+  reliably reach the handler, and every `.md` URL once silently returned the homepage with a 200. A
+  test in [`routes.test.ts`](src/app/api/__tests__/routes.test.ts) guards both the handler and the
+  rewrite rules against that coming back.
+- `Accept: text/markdown` negotiation was removed with the middleware: it ran an edge function on
+  every human page view for a format that earns almost no citations.
 
 ### Freshness
 
@@ -225,14 +260,21 @@ always says everything is new. **Bump `contentUpdatedAt` when you edit real cont
 2. Create a **Google Business Profile** for Delhi. For "web developer in Delhi" style questions this
    is what assistants reach for, and it is free.
 3. Run `node scripts/indexnow.mjs https://your-domain.com` after a content deploy to notify Bing and
-   Yandex immediately. The key file in `public/` must stay published; it is not a secret.
+   Yandex immediately. It reads the URL list from the live `sitemap.xml`, so there is no list to keep
+   in sync. The key file in `public/` must stay published; it is not a secret.
 
 ---
 
 ## Deploying to Vercel
 
 The repo is Vercel-ready — [`vercel.json`](vercel.json) pins the Mumbai region (`bom1`) so the site is
-fast for Indian visitors, and security headers are set in [`next.config.mjs`](next.config.mjs).
+fast for Indian visitors, and security headers — including a Content-Security-Policy — are set in
+[`next.config.ts`](next.config.ts). Adding any third-party script or service means adding its origin to
+that policy; the browser console names anything it blocks.
+
+> **Plan note.** Vercel's free Hobby plan is for non-commercial use only. A business site — this one, or
+> a client's — belongs on Vercel Pro, or on Cloudflare Pages / Netlify, whose free tiers allow
+> commercial use.
 
 1. Go to [vercel.com/new](https://vercel.com/new) and import this GitHub repository.
 2. Framework preset: **Next.js** (auto-detected). No build settings to change.
@@ -243,9 +285,13 @@ fast for Indian visitors, and security headers are set in [`next.config.mjs`](ne
 
 | Name                                   | Required | Value                                                    |
 | -------------------------------------- | -------- | -------------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`                 | yes      | The live URL, e.g. `https://growdhandha.vercel.app` — no trailing slash |
+| `NEXT_PUBLIC_SITE_URL`                 | yes      | The live URL, e.g. `https://grow-dhandha-three.vercel.app` — no trailing slash |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER`          | yes      | International format, digits only: `919540151718`        |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no       | Google Search Console token                              |
+| `NEXT_PUBLIC_UMAMI_WEBSITE_ID`         | no       | Turns on conversion analytics (Production only)          |
+| `RESEND_API_KEY`, `CONTACT_TO_EMAIL`   | no       | Both set = contact-form enquiries are also emailed       |
+| `CONTACT_FROM_EMAIL`                   | no       | Sender on a Resend-verified domain                       |
+| `GITHUB_TOKEN`                         | no       | Lifts the GitHub rate limit for "Recently shipped"       |
 
 `NEXT_PUBLIC_SITE_URL` must be set correctly in production — canonical tags, the sitemap, `robots.txt`
 and OG image URLs are all built from it. If it is missing, the site falls back to Vercel's own
@@ -286,6 +332,8 @@ What is in place:
 - WCAG AA contrast in both themes (`brand-ink` and `accent-ink` exist specifically so the accent
   colours are safe as text).
 - Theme applied before first paint by a tiny inline script — no flash of the wrong palette.
+- Hidden elements are genuinely hidden: the floating WhatsApp button and collapsed FAQ answers are
+  `inert` while not visible, and the mobile menu traps focus and returns it to the toggle.
 
 ### One thing worth knowing before you edit sections
 

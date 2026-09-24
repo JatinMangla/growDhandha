@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans, Sora } from 'next/font/google';
+import Script from 'next/script';
 import { AnchorScroll } from '@/components/layout/AnchorScroll';
+import { ConversionTracking } from '@/components/layout/ConversionTracking';
 import { Footer } from '@/components/layout/Footer';
 import { FloatingWhatsApp } from '@/components/layout/FloatingWhatsApp';
 import { Header } from '@/components/layout/Header';
@@ -9,6 +11,7 @@ import { ThemeScript } from '@/components/layout/ThemeScript';
 import { PointerFX } from '@/components/ui/PointerFX';
 import { RevealObserver } from '@/components/ui/RevealObserver';
 import { site, siteUrl } from '@/data/site';
+import { UMAMI_SCRIPT_SRC, umamiWebsiteId } from '@/lib/analytics';
 import './globals.css';
 
 /**
@@ -32,7 +35,7 @@ const body = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: `Website & App Development in Delhi from ₹4,999 | ${site.name}`,
+    default: `Website & App Development in Delhi from ${site.startingPrice} | ${site.name}`,
     template: `%s | ${site.name}`,
   },
   description: site.shortDescription,
@@ -51,8 +54,12 @@ export const metadata: Metadata = {
     'sasta website banwaye',
     'freelance web developer Delhi',
   ],
+  /* Pages that set their own `alternates` replace this whole object, so each
+     one names its own markdown form — a single global link here used to tell
+     agents that /pricing's markdown was the homepage's. */
   alternates: {
     canonical: '/',
+    types: { 'text/markdown': '/index.md' },
   },
   category: 'technology',
   openGraph: {
@@ -60,12 +67,12 @@ export const metadata: Metadata = {
     locale: 'en_IN',
     url: siteUrl,
     siteName: `${site.name} — ${site.role}`,
-    title: `Website & App Development in Delhi from ₹4,999`,
+    title: `Website & App Development in Delhi from ${site.startingPrice}`,
     description: site.shortDescription,
   },
   twitter: {
     card: 'summary_large_image',
-    title: `Website & App Development in Delhi from ₹4,999`,
+    title: `Website & App Development in Delhi from ${site.startingPrice}`,
     description: site.shortDescription,
   },
   robots: {
@@ -104,10 +111,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-IN" suppressHydrationWarning className={`${display.variable} ${body.variable}`}>
       <head>
         <ThemeScript />
-        {/* Without these an agent has no way to know a markdown form exists.
-            The alternate is the same content, not a separate document, so the
-            HTML page stays canonical. */}
-        <link rel="alternate" type="text/markdown" href="/index.md" title="This page as markdown" />
+        {/* Site-wide markdown summaries. Each page's own markdown alternate
+            comes from its `metadata.alternates.types`. */}
         <link rel="alternate" type="text/markdown" href="/llms.txt" title="Site summary for LLMs" />
         <link
           rel="alternate"
@@ -124,6 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           Skip to content
         </a>
         <AnchorScroll />
+        <ConversionTracking />
         <RevealObserver />
         <PointerFX />
         <ScrollProgress />
@@ -131,6 +137,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main id="main">{children}</main>
         <Footer />
         <FloatingWhatsApp />
+        {umamiWebsiteId ? (
+          <Script src={UMAMI_SCRIPT_SRC} data-website-id={umamiWebsiteId} strategy="afterInteractive" />
+        ) : null}
       </body>
     </html>
   );

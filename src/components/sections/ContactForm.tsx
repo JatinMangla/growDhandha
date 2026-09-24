@@ -4,8 +4,10 @@ import { AlertCircle, CheckCircle2, Send } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/Button';
 import { site, whatsappLink } from '@/data/site';
+import { track } from '@/lib/analytics';
 import {
   businessTypes,
+  normalisePhone,
   sanitize,
   validateContact,
   type ContactErrors,
@@ -18,11 +20,16 @@ const EMPTY: ContactValues = { name: '', phone: '', businessType: '', requiremen
 /**
  * The form composes a clean enquiry and hands it to WhatsApp — the channel
  * this audience actually uses — with an email fallback for anyone who prefers
- * it. No server, no third-party form service, so nothing a visitor types is
- * stored anywhere outside their own device.
+ * it. Nothing a visitor types is stored anywhere.
+ *
+ * With `leadBackup` on (the server has an email key configured), a copy is
+ * also beaconed to `/api/contact` and emailed, so an enquiry is not lost when
+ * someone opens WhatsApp and never presses send.
  */
-export function ContactForm() {
+export function ContactForm({ leadBackup = false }: { leadBackup?: boolean }) {
   const [values, setValues] = useState<ContactValues>(EMPTY);
+  // Honeypot — invisible to people, filled in by form-spamming bots.
+  const [company, setCompany] = useState('');
   const [errors, setErrors] = useState<ContactErrors>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -32,15 +39,19 @@ export function ContactForm() {
     setErrors((current) => (current[field] ? { ...current, [field]: undefined } : current));
   };
 
-  const buildMessage = (clean: ContactValues) =>
-    [
+  const buildMessage = (clean: ContactValues) => {
+    // WhatsApp already shows the sender's number, so a phone line is only
+    // worth including when the visitor gave a different one to call.
+    const phone = clean.phone ? normalisePhone(clean.phone) : null;
+    return [
       'Hi Jatin, I want to discuss a project.',
       '',
       `Name: ${clean.name}`,
-      `Phone: ${clean.phone}`,
+      ...(phone ? [`Call me on: ${phone}`] : []),
       `Business: ${clean.businessType}`,
       `Requirement: ${clean.requirement}`,
     ].join('\n');
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -49,7 +60,7 @@ export function ContactForm() {
       name: sanitize(values.name, 80),
       phone: sanitize(values.phone, 20),
       businessType: sanitize(values.businessType, 60),
-      requirement: sanitize(values.requirement, 1200),
+      requirement: sanitize(values.requirement, 1200, { multiline: true }),
     };
 
     const nextErrors = validateContact(clean);
@@ -62,6 +73,17 @@ export function ContactForm() {
       return;
     }
 
+    if (leadBackup && !company) {
+      try {
+        const payload = new Blob([JSON.stringify({ ...clean, company })], { type: 'application/json' });
+        navigator.sendBeacon('/api/contact', payload);
+      } catch {
+        // The WhatsApp hand-off below is the primary channel; never block it.
+      }
+    }
+
+    track('form_submit', { business: clean.businessType });
+    track('whatsapp_click', { cta: 'contact-form', path: window.location.pathname });
     window.open(whatsappLink(buildMessage(clean)), '_blank', 'noopener,noreferrer');
     setSubmitted(true);
   };
@@ -84,6 +106,7 @@ export function ContactForm() {
           variant="secondary"
           onClick={() => {
             setValues(EMPTY);
+            setCompany('');
             setSubmitted(false);
           }}
         >
@@ -95,6 +118,19 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate className="surface-card flex flex-col gap-5 p-6 sm:p-8">
+      <div aria-hidden="true" className="sr-only">
+        <label htmlFor="contact-company">Company (leave empty)</label>
+        <input
+          id="contact-company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          value={company}
+          onChange={(event) => setCompany(event.target.value)}
+        />
+      </div>
+
       <Field
         id="contact-name"
         label="Your name"
@@ -118,8 +154,8 @@ export function ContactForm() {
 
       <Field
         id="contact-phone"
-        label="Phone number"
-        hint="I will call or WhatsApp you on this number."
+        label="Phone number (optional)"
+        hint="Only if you would rather I call a different number from your WhatsApp."
         error={errors.phone}
         input={
           <input
@@ -192,8 +228,10 @@ export function ContactForm() {
       </Button>
 
       <p className="text-xs leading-relaxed text-subtle">
-        Your details go straight to my WhatsApp — nothing is stored on this website and nothing is
-        shared with anyone. Prefer email?{' '}
+        {leadBackup
+          ? 'Your details go to my WhatsApp, with a copy to my email so nothing gets lost. Nothing is stored on this website and nothing is shared with anyone.'
+          : 'Your details go straight to my WhatsApp — nothing is stored on this website and nothing is shared with anyone.'}{' '}
+        Prefer email?{' '}
         <a
           href={`mailto:${site.email}`}
           className="inline-block py-1 font-medium text-brand-ink underline underline-offset-2"

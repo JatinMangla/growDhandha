@@ -4,6 +4,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { LedgerRule } from '@/components/ui/LedgerRule';
 import { SplitPhrase, SplitWords } from '@/components/ui/SplitWords';
 import { defaultEnquiry, site, whatsappLink } from '@/data/site';
+import { headlineUsers } from '@/data/stats';
 import { HeroBackdrop } from './HeroBackdrop';
 
 const assurances = [
@@ -59,7 +60,7 @@ export function Hero() {
         <p style={step(3)} className="max-w-[52ch] text-lead text-muted">
           I am Jatin, a developer in Delhi. I build websites, mobile apps, and billing and inventory
           software for Indian small businesses — with the same standards I use on a fintech platform
-          serving <strong className="font-semibold text-fg">10,500+ users</strong> every day.
+          serving <strong className="font-semibold text-fg">{headlineUsers} users</strong> every day.
         </p>
 
         <div style={step(4)} className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-center">
@@ -68,6 +69,7 @@ export function Hero() {
             target="_blank"
             rel="noopener noreferrer"
             size="lg"
+            data-cta="hero"
             className="fx-magnet w-full sm:w-auto"
           >
             Get free consultation

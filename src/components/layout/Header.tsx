@@ -1,8 +1,9 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { Menu, Phone, X } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ButtonLink } from '@/components/ui/Button';
 import { defaultEnquiry, navLinks, site, whatsappLink } from '@/data/site';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   // Once mounted the panel stays mounted, so it can animate on the way out.
   const [menuMounted, setMenuMounted] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -30,13 +32,32 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Lock the page behind the mobile menu, and close it on Escape.
+  // Lock the page behind the mobile menu, keep keyboard focus inside it
+  // (toggle + panel), and close it on Escape with focus back on the toggle.
   useEffect(() => {
     if (!menuOpen) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+      const toggle = toggleRef.current;
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        toggle?.focus();
+        return;
+      }
+      if (event.key !== 'Tab' || !toggle) return;
+
+      const panel = document.getElementById('mobile-menu');
+      const focusables = [toggle, ...(panel?.querySelectorAll<HTMLElement>('a[href], button') ?? [])];
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last?.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first?.focus();
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => {
@@ -62,8 +83,8 @@ export function Header() {
       )}
     >
       <div className="shell flex h-16 items-center justify-between gap-4 sm:h-20">
-        <a
-          href="#top"
+        <Link
+          href="/"
           className="tap-target group flex items-center gap-2.5 font-display text-base font-semibold tracking-tight sm:text-lg"
         >
           <span
@@ -75,7 +96,7 @@ export function Header() {
           {/* The name is the link's accessible name at every width; below `sm`
               it is visually hidden rather than removed. */}
           <span className="sr-only sm:not-sr-only">{site.name}</span>
-        </a>
+        </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => (
@@ -105,12 +126,14 @@ export function Header() {
             href={whatsappLink(defaultEnquiry)}
             target="_blank"
             rel="noopener noreferrer"
+            data-cta="header"
             className="hidden lg:inline-flex"
           >
             Get free consultation
           </ButtonLink>
 
           <button
+            ref={toggleRef}
             type="button"
             onClick={toggleMenu}
             aria-expanded={menuOpen}

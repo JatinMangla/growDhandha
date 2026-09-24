@@ -1,11 +1,21 @@
+import { formatINR } from '@/lib/utils';
 import type { PricingTier } from '@/types';
+
+/**
+ * Tier prices are defined once here. Everything else — the hero, the FAQ, the
+ * structured data, the OG card, llms.txt — derives its numbers from these, so
+ * changing a price is a one-line edit.
+ */
+const STARTER = 4999;
+const BUSINESS = 14999;
+const CUSTOM_FROM = 39999;
 
 export const pricingTiers: PricingTier[] = [
   {
     id: 'starter',
     name: 'Starter',
-    price: '₹4,999',
-    priceValue: 4999,
+    price: formatINR(STARTER),
+    priceValue: STARTER,
     priceNote: 'one-time, all inclusive',
     bestFor: 'Shops, clinics, coaching centres and service providers getting online for the first time.',
     timeline: 'Ready in 5–7 days',
@@ -19,13 +29,13 @@ export const pricingTiers: PricingTier[] = [
       '30 days of support after launch',
     ],
     ctaLabel: 'Start with Starter',
-    enquiry: 'Hi Jatin, I want the Starter website at ₹4,999. My business is ',
+    enquiry: `Hi Jatin, I want the Starter website at ${formatINR(STARTER)}. My business is `,
   },
   {
     id: 'business',
     name: 'Business',
-    price: '₹14,999',
-    priceValue: 14999,
+    price: formatINR(BUSINESS),
+    priceValue: BUSINESS,
     priceNote: 'one-time, all inclusive',
     bestFor: 'Growing businesses that need more than a visiting card — catalogue, enquiries and content they control.',
     timeline: 'Ready in 2–3 weeks',
@@ -46,8 +56,8 @@ export const pricingTiers: PricingTier[] = [
   {
     id: 'custom',
     name: 'Complete Custom',
-    price: 'From ₹39,999',
-    priceValue: 39999,
+    price: `From ${formatINR(CUSTOM_FROM)}`,
+    priceValue: CUSTOM_FROM,
     priceIsFrom: true,
     priceNote: 'quoted after we talk',
     bestFor: 'Billing, inventory, CRM, a mobile app, or internal software built exactly for how you work.',
@@ -76,8 +86,19 @@ export const customOption = {
 };
 
 export const pricingAssurances = [
-  'Yes, really ₹4,999 — no hidden charges, no surprise bills.',
+  `Yes, really ${formatINR(STARTER)} — no hidden charges, no surprise bills.`,
   'Half the payment to start, half on delivery.',
   'Written quote before any work begins.',
   'You own the code, the content and the domain.',
 ];
+
+/** The entry price, as a number and as display text. */
+export const lowestPrice = Math.min(...pricingTiers.map((tier) => tier.priceValue));
+export const startingPrice = formatINR(lowestPrice);
+
+/** Looks up a tier by id; throws at build time if the id is ever renamed. */
+export function tier(id: string): PricingTier {
+  const found = pricingTiers.find((item) => item.id === id);
+  if (!found) throw new Error(`Unknown pricing tier: ${id}`);
+  return found;
+}

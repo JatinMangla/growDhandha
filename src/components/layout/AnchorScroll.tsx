@@ -53,10 +53,15 @@ export function AnchorScroll() {
         return;
       }
 
-      const anchor = (event.target as Element | null)?.closest?.('a[href^="#"]');
-      if (!(anchor instanceof HTMLAnchorElement)) return;
+      // Section links are written `/#pricing` so they also work from /blog;
+      // only those pointing at the page already open are handled in place.
+      const anchor = (event.target as Element | null)?.closest?.('a[href*="#"]');
+      if (!(anchor instanceof HTMLAnchorElement) || anchor.target === '_blank') return;
 
-      const id = idFromHash(anchor.getAttribute('href') ?? '');
+      const url = new URL(anchor.href, window.location.href);
+      if (url.origin !== window.location.origin || url.pathname !== window.location.pathname) return;
+
+      const id = idFromHash(url.hash);
       if (!id) return;
 
       const target = document.getElementById(id);

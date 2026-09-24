@@ -50,8 +50,18 @@ export type Project = {
   solution: string;
   result: string;
   stack: string[];
-  /** Optional public link; omit for work under NDA. */
+  /**
+   * Whose work this is, shown on the card so a reader never has to guess:
+   * `product` — built and shipped on my own; `client` — built for a paying
+   * client; `employer` — professional work done in a job, shown with permission.
+   */
+  kind: 'product' | 'client' | 'employer';
+  /** Public live link; omit for work under NDA or apps behind a private login. */
   href?: string;
+  /** Public source repository. */
+  repo?: string;
+  /** Screenshot under /public, e.g. '/projects/predict.png'. Monogram art is used without one. */
+  image?: { src: string; alt: string };
   /** Two-letter monogram used by the placeholder card art. */
   monogram: string;
   accent: 'brand' | 'accent' | 'gold';
@@ -120,4 +130,15 @@ export type Post = {
 export type NavLink = {
   label: string;
   href: string;
+};
+
+export type Testimonial = {
+  id: string;
+  /** The client's own words, lightly edited for length only. */
+  quote: string;
+  name: string;
+  /** e.g. "Hardware shop, Karol Bagh" — the reader should recognise themselves. */
+  business: string;
+  /** Which service it was, so the quote sits next to the right promise. */
+  project: string;
 };

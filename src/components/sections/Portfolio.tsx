@@ -1,9 +1,10 @@
+import Image from 'next/image';
 import { ArrowUpRight, Github } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
 import { CardFx } from '@/components/ui/PointerFX';
 import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
-import { projects } from '@/data/projects';
+import { projectKindLabel, projects } from '@/data/projects';
 import { site } from '@/data/site';
 import { cn } from '@/lib/utils';
 import type { Project } from '@/types';
@@ -22,7 +23,7 @@ export function Portfolio() {
         <SectionHeading
           eyebrow="Selected work"
           title="Real problems, and what changed after"
-          description="Enterprise platforms, AI tools and live dashboards. Client work is often under agreement, so each one is described by the problem it solved rather than by screenshots."
+          description="Products I have built and shipped myself, then professional work on enterprise platforms. Work under agreement is described by the problem it solved rather than by screenshots."
         />
 
         <ul className="grid gap-5 lg:grid-cols-2">
@@ -36,15 +37,30 @@ export function Portfolio() {
                     accentBanner[project.accent],
                   )}
                 >
-                  <span className="ruled-paper parallax-art absolute inset-0 opacity-25" aria-hidden="true" />
-                  <span
-                    aria-hidden="true"
-                    className="relative font-display text-5xl font-bold tracking-tight opacity-90 transition-transform duration-500 group-hover:scale-105 sm:text-6xl"
-                  >
-                    {project.monogram}
-                  </span>
-                  <span className="relative ml-auto text-right font-mono text-xs uppercase tracking-wider">
-                    {project.year}
+                  {project.image ? (
+                    <Image
+                      src={project.image.src}
+                      alt={project.image.alt}
+                      fill
+                      sizes="(min-width: 1024px) 40rem, 100vw"
+                      className="parallax-art object-cover object-top"
+                    />
+                  ) : (
+                    <>
+                      <span className="ruled-paper parallax-art absolute inset-0 opacity-25" aria-hidden="true" />
+                      <span
+                        aria-hidden="true"
+                        className="relative font-display text-5xl font-bold tracking-tight opacity-90 transition-transform duration-500 group-hover:scale-105 sm:text-6xl"
+                      >
+                        {project.monogram}
+                      </span>
+                    </>
+                  )}
+                  <span className="relative ml-auto flex flex-col items-end gap-1.5 text-right font-mono text-xs uppercase tracking-wider">
+                    <span className="rounded-pill bg-surface/85 px-2.5 py-1 text-fg">
+                      {projectKindLabel[project.kind]}
+                    </span>
+                    <span>{project.year}</span>
                   </span>
                 </div>
 
@@ -80,16 +96,32 @@ export function Portfolio() {
                     ))}
                   </ul>
 
-                  {project.href ? (
-                    <a
-                      href={project.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="tap-target inline-flex items-center gap-1.5 py-2 text-sm font-semibold text-fg transition-colors hover:text-brand-ink"
-                    >
-                      Visit {project.name}
-                      <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                    </a>
+                  {project.href || project.repo ? (
+                    <div className="flex flex-wrap gap-x-6">
+                      {project.href ? (
+                        <a
+                          href={project.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="tap-target inline-flex items-center gap-1.5 py-2 text-sm font-semibold text-fg transition-colors hover:text-brand-ink"
+                        >
+                          Visit {project.name}
+                          <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                        </a>
+                      ) : null}
+                      {project.repo ? (
+                        <a
+                          href={project.repo}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="tap-target inline-flex items-center gap-1.5 py-2 text-sm font-semibold text-fg transition-colors hover:text-brand-ink"
+                        >
+                          <Github className="h-4 w-4" aria-hidden="true" />
+                          Source on GitHub
+                          <span className="sr-only"> for {project.name}</span>
+                        </a>
+                      ) : null}
+                    </div>
                   ) : null}
                 </div>
               </article>

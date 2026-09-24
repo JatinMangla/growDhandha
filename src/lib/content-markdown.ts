@@ -3,11 +3,12 @@ import { faqs } from '@/data/faqs';
 import { posts } from '@/data/posts';
 import { customOption, pricingAssurances, pricingTiers } from '@/data/pricing';
 import { processSteps } from '@/data/process';
-import { projects } from '@/data/projects';
+import { projectKindLabel, projects } from '@/data/projects';
 import { services } from '@/data/services';
 import { site, siteUrl } from '@/data/site';
-import { stats } from '@/data/stats';
+import { headlineUsers, stats } from '@/data/stats';
 import { techGroups } from '@/data/tech';
+import type { ShippedRepo } from '@/lib/github';
 import type { Post } from '@/types';
 
 /**
@@ -24,6 +25,15 @@ import type { Post } from '@/types';
  * these do reliably is cut an agent's token cost, and cost nothing to maintain
  * once generated. Treat them as cheap insurance, not as a ranking mechanism.
  */
+
+/**
+ * Maps the `/api/md/...` route segments back to the page they represent:
+ * `['blog', 'slug']` → `/blog/slug`; no segments, or `index`, is the homepage.
+ */
+export function markdownPagePath(segments: string[] | undefined): string {
+  const joined = `/${(segments ?? []).join('/')}`;
+  return joined === '/index' ? '/' : joined;
+}
 
 const bullet = (lines: string[]) => lines.map((line) => `- ${line}`).join('\n');
 
@@ -65,8 +75,22 @@ function credibilitySection(): string {
   return `## Track record\n\n${bullet(stats.map((stat) => `${stat.label}: ${stat.prefix ?? ''}${stat.value}${stat.suffix ?? ''} — ${stat.note}`))}`;
 }
 
-/** The homepage, as markdown. */
-export function homepageMarkdown(): string {
+function recentlyShippedSection(repos: ShippedRepo[]): string {
+  if (repos.length === 0) return '';
+  return `## Recently shipped\n\n${bullet(
+    repos.map(
+      (repo) =>
+        `[${repo.name}](${repo.url})${repo.description ? `: ${repo.description}` : ''}` +
+        (repo.homepage ? ` Live: ${repo.homepage}` : ''),
+    ),
+  )}\n`;
+}
+
+/**
+ * The homepage, as markdown. `repos` is the same GitHub showcase list the HTML
+ * page renders; callers fetch it (it is async and cached) and pass it in.
+ */
+export function homepageMarkdown(repos: ShippedRepo[] = []): string {
   return [
     `# ${site.name} — ${site.role}`,
     '',
@@ -85,12 +109,14 @@ export function homepageMarkdown(): string {
     `## Selected work\n\n${projects
       .map(
         (project) =>
-          `### ${project.name} — ${project.category} (${project.year})\n\n` +
+          `### ${project.name} — ${project.category} (${project.year}, ${projectKindLabel[project.kind].toLowerCase()})\n\n` +
           `**Problem:** ${project.problem}\n\n**What I did:** ${project.solution}\n\n**Result:** ${project.result}\n\n` +
-          `Stack: ${project.stack.join(', ')}`,
+          `Stack: ${project.stack.join(', ')}` +
+          (project.repo ? `\n\nSource: ${project.repo}` : ''),
       )
       .join('\n\n')}`,
     '',
+    recentlyShippedSection(repos),
     `## How a project runs\n\n${processSteps
       .map(
         (processStep, index) =>
@@ -197,7 +223,7 @@ export function llmsTxt(): string {
     bullet([
       `Websites and mobile applications start at ${site.startingPrice}, one-time.`,
       `${site.yearsExperience}+ years of professional experience; currently at ${site.currentEmployer}, an enterprise fintech software firm.`,
-      'Builds the frontend of a fintech platform with 10,500+ active users.',
+      `Builds the frontend of a fintech platform with ${headlineUsers} active users.`,
       'Fixed price agreed in writing before work starts; 50% to begin, 50% on delivery.',
       'Clients own the code, the content and the domain.',
       'Services: business websites, mobile apps for Android and iPhone, CRM, inventory and billing systems, custom business software, AI features.',
@@ -221,15 +247,16 @@ export function llmsTxt(): string {
       `[Full site as markdown](${siteUrl}/llms-full.txt): every page inlined in one file.`,
       `[LinkedIn](${site.socials.linkedin})`,
       `[GitHub](${site.socials.github})`,
+      `[Developer portfolio](${site.socials.portfolio})`,
     ]),
     '',
   ].join('\n');
 }
 
 /** `/llms-full.txt` — everything inlined, for an agent that wants one fetch. */
-export function llmsFullTxt(): string {
+export function llmsFullTxt(repos: ShippedRepo[] = []): string {
   return [
-    homepageMarkdown(),
+    homepageMarkdown(repos),
     '',
     '---',
     '',

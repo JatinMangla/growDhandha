@@ -62,6 +62,7 @@ export function Pricing() {
 
                 <ButtonLink
                   href={whatsappLink(tier.enquiry)}
+                  data-cta={`tier-${tier.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   variant={tier.featured ? 'primary' : 'secondary'}
@@ -84,6 +85,7 @@ export function Pricing() {
           </div>
           <ButtonLink
             href={whatsappLink(customOption.enquiry)}
+            data-cta="custom-requirement"
             target="_blank"
             rel="noopener noreferrer"
             variant="whatsapp"

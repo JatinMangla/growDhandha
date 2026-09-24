@@ -308,8 +308,10 @@
       properties; all the movement happens in CSS. Gated to fine pointers, so
       a phone never runs any of it.
 
-   3. Ambient loops (the aurora ring, the scanline). Composited transforms and
-      a registered custom property, so they animate without layout or paint.
+   3. Ambient loops (the aurora ring, the scanline). The scanline is a
+      composited transform. The aurora ring is not: animating a registered
+      property inside a gradient repaints every frame, so it runs a few laps
+      and stops rather than looping for as long as the tab is open.
    ========================================================================== */
 
 /* A registered property can be interpolated; a plain custom property cannot.
@@ -355,8 +357,17 @@
       linear-gradient(#000 0 0) content-box,
       linear-gradient(#000 0 0);
     mask-composite: exclude;
-    animation: aurora-spin 6s linear infinite;
+    /* Three laps, then rest. It has done its job of drawing the eye by then,
+       and an infinite loop was a permanent per-frame repaint above the fold. */
+    animation: aurora-spin 6s linear 3;
     pointer-events: none;
+  }
+
+  /* On hover the ring takes another lap, so the effect is there on demand. */
+  @media (hover: hover) and (pointer: fine) {
+    .aurora-ring:hover::before {
+      animation: aurora-spin 6s linear infinite;
+    }
   }
 
   @keyframes aurora-spin {

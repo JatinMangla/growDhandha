@@ -7,14 +7,15 @@ import { LedgerRule } from '@/components/ui/LedgerRule';
 import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
 import { faqs } from '@/data/faqs';
-import { customOption, pricingAssurances, pricingTiers } from '@/data/pricing';
+import { customOption, pricingAssurances, pricingTiers, startingPrice, tier as tierById } from '@/data/pricing';
 import { defaultEnquiry, site, siteUrl, whatsappLink } from '@/data/site';
 import { cn } from '@/lib/utils';
 
+const TITLE = `Website and app pricing — from ${startingPrice}, no hidden charges`;
+
 export const metadata: Metadata = {
-  title: 'Website and app pricing — from ₹4,999, no hidden charges',
-  description:
-    'Exactly what a website, mobile app or billing system costs: three fixed-price plans from ₹4,999, what each includes, what is genuinely extra, and how payment works.',
+  title: TITLE,
+  description: `Exactly what a website, mobile app or billing system costs: three fixed-price plans from ${startingPrice}, what each includes, what is genuinely extra, and how payment works.`,
   keywords: [
     'website price India',
     'website cost Delhi',
@@ -22,13 +23,12 @@ export const metadata: Metadata = {
     'mobile app development cost India',
     'billing software price India',
   ],
-  alternates: { canonical: '/pricing' },
+  alternates: { canonical: '/pricing', types: { 'text/markdown': '/pricing.md' } },
   openGraph: {
     type: 'website',
     url: '/pricing',
-    title: 'Website and app pricing — from ₹4,999, no hidden charges',
-    description:
-      'Three fixed-price plans from ₹4,999. What each includes, what is genuinely extra, and how payment works.',
+    title: TITLE,
+    description: `Three fixed-price plans from ${startingPrice}. What each includes, what is genuinely extra, and how payment works.`,
   },
 };
 
@@ -120,8 +120,8 @@ export default function PricingPage() {
           {/* The answer, first — the thing someone came to this page for. */}
           <p className="max-w-prose text-lead font-medium text-fg">
             Websites start at {site.startingPrice} one-time. A larger site with a catalogue and an
-            admin panel is ₹14,999. Custom billing, inventory, CRM or mobile app work starts at
-            ₹39,999 and is quoted after we talk.
+            admin panel is {tierById('business').price}. Custom billing, inventory, CRM or mobile app work
+            starts at {tierById('custom').price.replace(/^From /, '')} and is quoted after we talk.
           </p>
         </div>
 
@@ -163,6 +163,7 @@ export default function PricingPage() {
 
                 <ButtonLink
                   href={whatsappLink(tier.enquiry)}
+                  data-cta={`tier-${tier.id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   variant={tier.featured ? 'primary' : 'secondary'}
@@ -198,6 +199,7 @@ export default function PricingPage() {
           </div>
           <ButtonLink
             href={whatsappLink(customOption.enquiry)}
+            data-cta="custom-requirement"
             target="_blank"
             rel="noopener noreferrer"
             variant="whatsapp"

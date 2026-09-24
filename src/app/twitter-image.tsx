@@ -1,6 +1,6 @@
-import { OG_CONTENT_TYPE, OG_SIZE, renderOgImage } from '@/lib/og';
+import { OG_ALT, OG_CONTENT_TYPE, OG_SIZE, renderOgImage } from '@/lib/og';
 
-export const alt = 'Jatin Mangla — websites and apps for Indian businesses, starting at Rs 4,999';
+export const alt = OG_ALT;
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 

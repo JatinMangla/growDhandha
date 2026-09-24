@@ -1,4 +1,4 @@
-import { Github, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
+import { Github, Globe, Linkedin, Mail, MapPin, Phone } from 'lucide-react';
 import { services } from '@/data/services';
 import { navLinks, site } from '@/data/site';
 import { LedgerRule } from '@/components/ui/LedgerRule';
@@ -44,6 +44,15 @@ export function Footer() {
               >
                 <Github className="h-[18px] w-[18px]" aria-hidden="true" />
               </a>
+              <a
+                href={site.socials.portfolio}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Jatin Mangla's developer portfolio"
+                className="tap-target inline-flex items-center justify-center rounded-pill border border-line bg-surface p-2.5 text-fg transition-colors hover:border-brand hover:text-brand-ink"
+              >
+                <Globe className="h-[18px] w-[18px]" aria-hidden="true" />
+              </a>
             </div>
           </div>
 
@@ -54,8 +63,12 @@ export function Footer() {
             <ul className="flex flex-col gap-2.5">
               {services.map((service) => (
                 <li key={service.id}>
+                  {/* A plain anchor, deliberately: from another page a full load
+                      lets AnchorScroll release the deferred sections and land
+                      exactly, which a client-side transition would skip. */}
+                  {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                   <a
-                    href="#services"
+                    href="/#services"
                     className="tap-target inline-flex items-center text-sm text-muted transition-colors hover:text-brand-ink"
                   >
                     {service.title}
@@ -75,7 +88,7 @@ export function Footer() {
                   ...navLinks,
                   { label: 'Pricing details', href: '/pricing' },
                   { label: 'Blog', href: '/blog' },
-                  { label: 'Contact', href: '#contact' },
+                  { label: 'Contact', href: '/#contact' },
                 ].map(
                   (link) => (
                     <li key={link.href}>
@@ -117,7 +130,10 @@ export function Footer() {
 
           <div className="flex flex-col gap-2 text-xs text-subtle sm:flex-row sm:items-center sm:justify-between">
             <p>
-              &copy; {year} {site.name}. All rights reserved.
+              &copy; {year} {site.name}. All rights reserved.{' '}
+              <a href="/privacy" className="underline underline-offset-2 transition-colors hover:text-brand-ink">
+                Privacy
+              </a>
             </p>
             <p>Built and maintained by hand — no page builders.</p>
           </div>

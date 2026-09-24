@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { posts } from '@/data/posts';
-import { contentUpdatedAt, siteUrl } from '@/data/site';
+import { contentUpdatedAt, privacyUpdatedAt, siteUrl } from '@/data/site';
 
 /**
  * Every `lastModified` here is a real content date, never build time. Two
@@ -25,6 +25,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
     },
     { url: `${siteUrl}/blog`, lastModified: newestPost, changeFrequency: 'weekly', priority: 0.6 },
+    {
+      url: `${siteUrl}/privacy`,
+      lastModified: new Date(privacyUpdatedAt),
+      changeFrequency: 'yearly',
+      priority: 0.2,
+    },
     ...posts.map((post) => ({
       url: `${siteUrl}/blog/${post.slug}`,
       lastModified: new Date(post.updatedAt),

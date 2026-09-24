@@ -1,5 +1,6 @@
 import { BadgeIndianRupee, CalendarCheck, LifeBuoy, MessageSquare, ShieldCheck } from 'lucide-react';
 import type { Differentiator } from '@/types';
+import { headlineUsers } from './stats';
 
 /**
  * Each item names the fear first, then answers it. This audience has usually
@@ -8,10 +9,9 @@ import type { Differentiator } from '@/types';
 export const differentiators: Differentiator[] = [
   {
     id: 'credibility',
-    title: 'Software trusted by 10,500+ users',
+    title: `Software trusted by ${headlineUsers} users`,
     fear: '“Can this person handle something serious?”',
-    answer:
-      'I build the frontend of Mera Monitor, an enterprise fintech platform used by over 10,500 people every day. Your project gets the same standards — the same care with security, speed and testing.',
+    answer: `I build the frontend of Mera Monitor, an enterprise fintech platform used by ${headlineUsers} people every day. Your project gets the same standards — the same care with security, speed and testing.`,
     icon: ShieldCheck,
   },
   {
