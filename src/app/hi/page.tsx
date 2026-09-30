@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { seoTitle } from '@/lib/seo';
 import Link from 'next/link';
 import { ArrowRight, BadgeCheck, Check, Clock, MessageCircle, Phone, ShieldCheck } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
@@ -23,7 +24,7 @@ const TITLE = `दिल्ली में वेबसाइट और ऐप 
 const DESCRIPTION = `छोटे बिज़नेस के लिए वेबसाइट, मोबाइल ऐप, बिलिंग और स्टॉक सॉफ़्टवेयर। तय कीमत, ${startingPrice} से। सीधे डेवलपर से WhatsApp पर बात करें।`;
 
 export const metadata: Metadata = {
-  title: TITLE,
+  title: seoTitle(TITLE),
   description: DESCRIPTION,
   alternates: {
     canonical: '/hi',

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { posts } from '@/data/posts';
+import { services } from '@/data/services';
 import { contentUpdatedAt, privacyUpdatedAt, siteUrl } from '@/data/site';
 
 /**
@@ -31,6 +32,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.9,
       alternates: { languages: { 'en-IN': `${siteUrl}/`, 'hi-IN': `${siteUrl}/hi` } },
     },
+    { url: `${siteUrl}/services`, lastModified: staticUpdated, changeFrequency: 'monthly', priority: 0.9 },
+    ...services.map((service) => ({
+      url: `${siteUrl}/services/${service.id}`,
+      lastModified: staticUpdated,
+      changeFrequency: 'monthly' as const,
+      priority: 0.9,
+    })),
+    { url: `${siteUrl}/about`, lastModified: staticUpdated, changeFrequency: 'yearly', priority: 0.5 },
     {
       url: `${siteUrl}/pricing`,
       lastModified: staticUpdated,

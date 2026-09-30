@@ -1,7 +1,8 @@
 # CLAUDE.md
 
 Guide for AI assistants (and people) picking up this repo. Read this first; README.md has the
-long-form, user-facing documentation. Keep this file current: update it in the same commit as any
+long-form, user-facing documentation, and **`docs/SEO-PLAYBOOK.md` is the SEO strategy**: what is
+done, what is pending, the procedures and the results log. Keep this file current: update it in the same commit as any
 change to architecture, conventions, decisions or open items.
 
 ## What this is
@@ -14,8 +15,9 @@ selling to Indian small businesses. It has one job: turn a visitor into a WhatsA
   Work on a branch and let the owner merge the PR (that is how the last two changes shipped).
 - Stack: Next.js 16 (App Router, Turbopack), React 19, TypeScript strict, Tailwind 3, Framer Motion
   (mobile menu only). Tests: Vitest 3 (unit/route), Playwright + axe (browser), Lighthouse CI.
-- Pages: `/`, `/hi` (Hindi), `/pricing`, `/blog`, `/blog/[slug]`, `/privacy`, plus generated
-  `/llms.txt`, `/llms-full.txt`, `*.md`, sitemap, robots, manifest, icons and OG images.
+- Pages: `/`, `/hi` (Hindi), `/services` plus six `/services/[id]`, `/pricing`, `/blog`,
+  `/blog/[slug]`, `/about`, `/privacy`, plus generated `/llms.txt`, `/llms-full.txt`, `*.md`,
+  sitemap, robots, manifest, icons and OG images.
 
 ## Commands
 
@@ -23,9 +25,9 @@ selling to Indian small businesses. It has one job: turn a visitor into a WhatsA
 npm run dev         # localhost:3000
 npm run typecheck   # tsc --noEmit --incremental false
 npm run lint        # eslint . (flat config, eslint.config.mjs; `next lint` no longer exists)
-npm test            # vitest run: 35 unit and route tests
+npm test            # vitest run: 52 unit, route and content-integrity tests
 npm run build       # production build; run it before claiming a change works
-npm run test:e2e    # playwright: 54 browser tests on port 3100 (needs a build first)
+npm run test:e2e    # playwright: 81 browser tests on port 3100 (needs a build first)
 npm run lighthouse  # lhci autorun on port 3200 (needs a build first)
 ```
 
@@ -69,6 +71,28 @@ only warns on performance.
     height are in `.lang-hi` in `globals.css`.
   - Both languages declare `hreflang` (layout metadata, `/hi` metadata and sitemap), with "हिंदी में
     पढ़ें" in the hero and footer.
+- **SEO structure** (why: `docs/SEO-PLAYBOOK.md`):
+  - **Service pages are the money pages.** `/services/<id>` is rendered from `services.ts` →
+    `page` (headline, summary, intro, forWho, tierIds, faqIds, postSlugs). `/services` is the hub, and
+    the URL to point backlinks at.
+  - **The header nav links to real pages** (`/services`, `/pricing`, `/blog`), not homepage anchors,
+    because it's on every page and passes authority. Homepage service cards link one hop to each
+    service page.
+  - **In-text links:** any content string in posts or service intros can contain
+    `[anchor](/path)`. It's rendered by `RichText`, stripped for schema and made absolute in markdown
+    (`src/lib/rich-text.ts`). `src/data/__tests__/content.test.ts` fails on a broken link, an
+    orphaned service page or article, a bad `tierIds`/`faqIds`/`postSlugs` reference, or a
+    description outside 70–160.
+  - **Titles:** wrap page titles in `seoTitle()` (`src/lib/seo.ts`). It drops the "| Jatin Mangla"
+    suffix when it would exceed 65 characters. The e2e "on-page SEO" test checks every indexable
+    page: title ≤ 65, description 70–160, one h1, self canonical, no noindex, unique title, in the
+    sitemap. **Add every new page to `INDEXABLE` in `e2e/site.spec.ts`.**
+  - **Structured data reads plain strings:** never pass `metadata.title` into JSON-LD, because it
+    can be an object after `seoTitle()`.
+  - **Republishing a page:** follow the header of `src/data/redirects.ts`. Permanent redirects,
+    never chained.
+  - **`/about`** is the author page (E-E-A-T). Bylines link to it, and `Person` in `JsonLd.tsx` is
+    exported and reused there.
 - **Projects** (`src/data/projects.ts`) have `kind: 'product' | 'client' | 'employer'`, shown on
   the card. Own products come first. Apps behind a private login link `repo`, not `href`. Setting
   `image` swaps the monogram art for a screenshot from `public/projects/`.
@@ -148,7 +172,8 @@ only warns on performance.
 | `RESEND_API_KEY` + `CONTACT_TO_EMAIL` | optional | Email copy of enquiries; changes form and privacy wording |
 | `CONTACT_FROM_EMAIL` | optional | Resend sender on a verified domain |
 | `GITHUB_TOKEN` | optional | Higher GitHub API limit for "Recently shipped" |
-| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | optional | Search Console meta tag |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | optional | Search Console meta tag (works on vercel.app, no domain needed) |
+| `NEXT_PUBLIC_BING_SITE_VERIFICATION` | optional | Bing Webmaster Tools `msvalidate.01` meta tag |
 
 The homepage is static, so env changes need a redeploy.
 
@@ -164,27 +189,37 @@ The homepage is static, so env changes need a redeploy.
 - `Accept: text/markdown` negotiation and the middleware were removed on purpose: an edge function
   on every page view wasn't worth it.
 - `/hi` uses system Devanagari fonts, not a web font (measured; see above).
+- **No one-page-per-FAQ stubs, and no mass city or industry pages.** Thin pages on a new,
+  low-authority site end up "crawled — not indexed", and near-duplicate location pages are doorway
+  pages under Google's spam policy. Reasoning is in the SEO playbook.
 
 ## History
 
 - **PR #2** (`audit-fixes`, merged 2026-09-24): full audit fixes. Nav on sub-pages, markdown
   routing, JSON-LD address, single source for prices, Umami tracking, lead-backup email, portfolio
   projects, privacy page, CSP, Next 16, Vitest, CI.
-- **`finish-followups` branch** (pushed 2026-09-24): Playwright and axe browser tests, Lighthouse
-  CI budgets, the Hindi page, the prefetch fix, a clean reinstall, and an honest performance section
-  in the README.
+- **PR #3** (`finish-followups`, merged): Playwright and axe browser tests, Lighthouse CI budgets,
+  the Hindi page, the prefetch fix, a clean reinstall, and an honest performance section in the
+  README.
+- **`seo-playbook` branch** (pushed 2026-09-30): applied the PageRank and topical-authority playbook
+  (Edward Sturm and David Quaid episode). Service pages and hub, nav to money pages, in-text
+  cluster links, `/about`, a redirects mechanism, the title-length fix, Bing verification,
+  content-integrity and on-page SEO tests, and `docs/SEO-PLAYBOOK.md`.
 
 ## Owner checklist (things only Jatin can do; ask about progress)
 
 1. [ ] Install Node 22 LTS locally, then upgrade Vitest (see the environment notes).
-2. [ ] Merge the `finish-followups` PR and close PR #1 on GitHub.
+2. [x] Merge the `finish-followups` PR. [ ] Merge the `seo-playbook` PR. [ ] Close PR #1.
 3. [ ] Umami: create the site, set `NEXT_PUBLIC_UMAMI_WEBSITE_ID` in Vercel (Production), redeploy.
 4. [ ] Optional: Resend (`RESEND_API_KEY`, `CONTACT_TO_EMAIL`, later `CONTACT_FROM_EMAIL`), redeploy.
 5. [ ] CareerPilot-AI: change the production `AUTH_PASSWORD` and remove the default from its README.
 6. [ ] Vercel Hobby is non-commercial only: upgrade to Pro, or move to Cloudflare Pages or Netlify.
-7. [ ] Buy a domain, attach it in Vercel, and set `NEXT_PUBLIC_SITE_URL`.
-8. [ ] Google Search Console, Bing Webmaster Tools, and a Google Business Profile (service area,
-   no address).
+7. [ ] Buy a domain **before any link-building**, then follow "Needs a domain" in
+   `docs/SEO-PLAYBOOK.md` (vercel.app → domain redirect, change of address).
+8. [ ] Search Console and Bing now, on the vercel.app URL, via the meta-tag variables. Then a Google
+   Business Profile (service area, no address).
+8b. [ ] Earn the first links, following the backlink table in `docs/SEO-PLAYBOOK.md` (the Life
+   portfolio and GitHub READMEs first; he controls those).
 9. [ ] Add `showcase` topics on GitHub, and project screenshots in `public/projects/`.
 10. [ ] A photo of Jatin (then add it to the hero or WhyMe section), and real testimonials in
     `src/data/testimonials.ts`.
@@ -200,5 +235,9 @@ The homepage is static, so env changes need a redeploy.
 - A photo slot in the hero, once the owner provides a photo.
 - A Hindi version of the blog or FAQ, only if `/hi` traffic justifies it (check Umami's `hi-*`
   labels).
+- Once Search Console has 4–8 weeks of data, the monthly routine in `docs/SEO-PLAYBOOK.md`: the
+  1-hour update, strong → weak links, and republishing stuck pages. Log each one in its results
+  table.
+- New articles from the content plan in the playbook, each linked into its cluster.
 - If Umami shows agent traffic to `.md` URLs, consider restoring `Accept` negotiation, with a
   narrow matcher.

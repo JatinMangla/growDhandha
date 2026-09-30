@@ -1,12 +1,16 @@
 import type { NextRequest } from 'next/server';
 import { getPost } from '@/data/posts';
+import { getService } from '@/data/services';
 import { fetchShowcaseRepos } from '@/lib/github';
 import {
+  aboutMarkdown,
   blogIndexMarkdown,
   homepageMarkdown,
   markdownPagePath,
   postMarkdown,
   pricingMarkdown,
+  serviceMarkdown,
+  servicesIndexMarkdown,
 } from '@/lib/content-markdown';
 
 /**
@@ -33,6 +37,14 @@ async function render(path: string): Promise<string | null> {
   if (path === '/' || path === '') return homepageMarkdown(await fetchShowcaseRepos());
   if (path === '/pricing') return pricingMarkdown();
   if (path === '/blog') return blogIndexMarkdown();
+  if (path === '/services') return servicesIndexMarkdown();
+  if (path === '/about') return aboutMarkdown();
+
+  const serviceMatch = /^\/services\/([a-z0-9-]+)$/.exec(path);
+  if (serviceMatch?.[1]) {
+    const service = getService(serviceMatch[1]);
+    return service ? serviceMarkdown(service) : null;
+  }
 
   const blogMatch = /^\/blog\/([a-z0-9-]+)$/.exec(path);
   if (blogMatch?.[1]) {

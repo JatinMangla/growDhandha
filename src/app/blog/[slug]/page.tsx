@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { seoTitle } from '@/lib/seo';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: post.title,
+    title: seoTitle(post.title),
     description: post.description,
     keywords: post.tags,
     alternates: {
@@ -59,7 +60,14 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
-  const others = posts.filter((item) => item.slug !== post.slug).slice(0, 2);
+  // Read next: the articles sharing the most tags — the same topic cluster —
+  // so internal links reinforce topics rather than just listing neighbours.
+  const others = posts
+    .filter((item) => item.slug !== post.slug)
+    .map((item) => ({ item, shared: item.tags.filter((tag) => post.tags.includes(tag)).length }))
+    .sort((a, b) => b.shared - a.shared)
+    .slice(0, 3)
+    .map(({ item }) => item);
 
   return (
     <article className="pb-20 pt-28 sm:pb-24 sm:pt-36">
@@ -99,8 +107,15 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <div className="mt-4 flex flex-col gap-4 rounded-card border border-line bg-sunken p-6 sm:p-8">
           <p className="text-sm leading-relaxed text-muted">
-            Written by {site.name}, a developer in {site.location.city} who builds websites, apps and
-            billing software for Indian small businesses. If you have a question this did not answer,
+            Written by{' '}
+            <Link href="/about" prefetch={false} className="font-medium text-fg underline underline-offset-2 hover:text-brand-ink">
+              {site.name}
+            </Link>
+            , a developer in {site.location.city} who builds{' '}
+            <Link href="/services" prefetch={false} className="font-medium text-fg underline underline-offset-2 hover:text-brand-ink">
+              websites, apps and billing software
+            </Link>{' '}
+            for Indian small businesses. If you have a question this did not answer,
             message me — I reply within {site.responseTime}.
           </p>
           <ButtonLink

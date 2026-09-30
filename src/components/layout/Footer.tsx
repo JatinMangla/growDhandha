@@ -63,12 +63,8 @@ export function Footer() {
             <ul className="flex flex-col gap-2.5">
               {services.map((service) => (
                 <li key={service.id}>
-                  {/* A plain anchor, deliberately: from another page a full load
-                      lets AnchorScroll release the deferred sections and land
-                      exactly, which a client-side transition would skip. */}
-                  {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                   <a
-                    href="/#services"
+                    href={`/services/${service.id}`}
                     className="tap-target inline-flex items-center text-sm text-muted transition-colors hover:text-brand-ink"
                   >
                     {service.title}
@@ -86,8 +82,7 @@ export function Footer() {
               <ul className="flex flex-col gap-2.5">
                 {[
                   ...navLinks,
-                  { label: 'Pricing details', href: '/pricing' },
-                  { label: 'Blog', href: '/blog' },
+                  { label: 'About', href: '/about' },
                   { label: 'Contact', href: '/#contact' },
                 ].map(
                   (link) => (

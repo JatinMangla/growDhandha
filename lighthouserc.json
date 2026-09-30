@@ -7,6 +7,7 @@
         "http://localhost:3200/",
         "http://localhost:3200/hi",
         "http://localhost:3200/pricing",
+        "http://localhost:3200/services/business-website",
         "http://localhost:3200/blog/billing-software-vs-excel"
       ],
       "numberOfRuns": 3

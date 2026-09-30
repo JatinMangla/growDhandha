@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { seoTitle } from '@/lib/seo';
 import Link from 'next/link';
 import { ArrowRight, PenLine } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
@@ -9,7 +10,7 @@ import { plannedTopics, posts } from '@/data/posts';
 import { defaultEnquiry, site, siteUrl, whatsappLink } from '@/data/site';
 
 export const metadata: Metadata = {
-  title: 'Blog — plain advice on websites, apps and software for Indian businesses',
+  title: seoTitle('Small business guides: websites, apps and software'),
   description:
     'Straightforward guides on what a website should cost, whether you need an app, and how to get your business found on Google. Written for owners, not developers.',
   alternates: { canonical: '/blog', types: { 'text/markdown': '/blog.md' } },

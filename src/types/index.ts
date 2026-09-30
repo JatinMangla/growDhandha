@@ -9,6 +9,30 @@ export type Service = {
   /** Plain-language deliverables — never feature jargon. */
   outcomes: string[];
   icon: LucideIcon;
+  /** The page for this service, at /services/<id>. */
+  page: ServicePage;
+};
+
+/**
+ * A service's own landing page. These are the site's buyer-intent ("money")
+ * pages: one link from the homepage, one from the nav's /services hub, so
+ * authority reaches them in as few hops as possible.
+ */
+export type ServicePage = {
+  /** The page's <h1>, phrased the way someone would search for it. */
+  headline: string;
+  /** Meta description, ~150 characters. */
+  summary: string;
+  /** Two or three paragraphs of real explanation. Supports [text](/path) links. */
+  intro: string[];
+  /** Who this is for, so a reader can recognise themselves. */
+  forWho: string[];
+  /** Pricing tiers that apply, by id, most relevant first. */
+  tierIds: string[];
+  /** Questions from faqs.ts that belong on this page, by id. */
+  faqIds: string[];
+  /** Related articles, by slug — the page's topic cluster. */
+  postSlugs: string[];
 };
 
 export type Stat = {

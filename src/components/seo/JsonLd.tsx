@@ -9,11 +9,13 @@ type Schema = Record<string, unknown>;
 const businessId = `${siteUrl}/#business`;
 const personId = `${siteUrl}/#person`;
 
-const person: Schema = {
+/** Also rendered on /about, where it is the page's main entity. */
+export const person: Schema = {
   '@type': 'Person',
   '@id': personId,
   name: site.name,
   jobTitle: site.role,
+  mainEntityOfPage: `${siteUrl}/about`,
   description: `${site.role} with ${site.yearsExperience}+ years of professional experience, building websites, mobile apps and business software for Indian small businesses.`,
   url: siteUrl,
   telephone: site.phone,
@@ -85,8 +87,10 @@ const professionalService: Schema = {
     '@type': 'Offer',
     itemOffered: {
       '@type': 'Service',
+      '@id': `${siteUrl}/services/${service.id}#service`,
       name: service.title,
       description: service.promise,
+      url: `${siteUrl}/services/${service.id}`,
       provider: { '@id': businessId },
       areaServed: { '@type': 'Country', name: 'India' },
       serviceType: service.title,

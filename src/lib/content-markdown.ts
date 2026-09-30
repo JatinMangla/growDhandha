@@ -9,7 +9,8 @@ import { site, siteUrl } from '@/data/site';
 import { headlineUsers, stats } from '@/data/stats';
 import { techGroups } from '@/data/tech';
 import type { ShippedRepo } from '@/lib/github';
-import type { Post } from '@/types';
+import { absoluteMarkdown } from '@/lib/rich-text';
+import type { Post, Service } from '@/types';
 
 /**
  * Markdown renderings of the site, generated from the same typed data the HTML
@@ -37,6 +38,9 @@ export function markdownPagePath(segments: string[] | undefined): string {
 
 const bullet = (lines: string[]) => lines.map((line) => `- ${line}`).join('\n');
 
+/** Content strings keep links root-relative; an agent reading markdown needs them absolute. */
+const md = (text: string) => absoluteMarkdown(text, siteUrl);
+
 /** Shared identity block, so every representation states the same facts. */
 function identityLines(): string[] {
   return [
@@ -61,7 +65,10 @@ function pricingSection(): string {
 
 function servicesSection(): string {
   return `## Services\n\n${services
-    .map((service) => `- **${service.title}** — ${service.promise} ${service.description}`)
+    .map(
+      (service) =>
+        `- **[${service.title}](${siteUrl}/services/${service.id})** — ${service.promise} ${service.description}`,
+    )
     .join('\n')}`;
 }
 
@@ -143,15 +150,15 @@ export function postMarkdown(post: Post): string {
         case 'heading':
           return `## ${block.text}`;
         case 'paragraph':
-          return block.text;
+          return md(block.text);
         case 'callout':
-          return `> ${block.text}`;
+          return `> ${md(block.text)}`;
         case 'list':
           return block.items
-            .map((item, index) => (block.ordered ? `${index + 1}. ${item}` : `- ${item}`))
+            .map((item, index) => (block.ordered ? `${index + 1}. ${md(item)}` : `- ${md(item)}`))
             .join('\n');
         case 'qa':
-          return `### ${block.question}\n\n${block.answer}`;
+          return `### ${block.question}\n\n${md(block.answer)}`;
       }
     })
     .join('\n\n');
@@ -186,6 +193,85 @@ export function blogIndexMarkdown(): string {
           `## ${post.title}\n\n${post.answer}\n\nRead: ${siteUrl}/blog/${post.slug} (published ${post.publishedAt})`,
       )
       .join('\n\n'),
+    '',
+  ].join('\n');
+}
+
+/** The /services hub, as markdown. */
+export function servicesIndexMarkdown(): string {
+  return [
+    '# Services — websites, apps and business software',
+    '',
+    `> Fixed-price work for Indian small businesses, from ${site.startingPrice}.`,
+    '',
+    servicesSection(),
+    '',
+    `Pricing: ${siteUrl}/pricing`,
+    '',
+  ].join('\n');
+}
+
+/** One service page, as markdown. */
+export function serviceMarkdown(service: Service): string {
+  const tiers = pricingTiers.filter((item) => service.page.tierIds.includes(item.id));
+  const questions = faqs.filter((faq) => service.page.faqIds.includes(faq.id));
+  const guides = posts.filter((post) => service.page.postSlugs.includes(post.slug));
+
+  return [
+    `# ${service.page.headline}`,
+    '',
+    `> ${service.promise}`,
+    '',
+    ...service.page.intro.map((paragraph) => `${md(paragraph)}\n`),
+    '## Who it is for',
+    '',
+    bullet(service.page.forWho),
+    '',
+    '## What you get',
+    '',
+    bullet(service.outcomes),
+    '',
+    '## Price and timeline',
+    '',
+    bullet(tiers.map((item) => `**${item.name} — ${item.price}** (${item.priceNote}). ${item.timeline}.`)),
+    '',
+    `Full breakdown: ${siteUrl}/pricing`,
+    '',
+    '## Questions',
+    '',
+    questions.map((faq) => `### ${faq.question}\n\n${faq.answer}`).join('\n\n'),
+    '',
+    '## Related guides',
+    '',
+    bullet(guides.map((post) => `[${post.title}](${siteUrl}/blog/${post.slug})`)),
+    '',
+    `Contact: ${site.phoneDisplay} · ${site.email} · WhatsApp preferred`,
+    '',
+  ].join('\n');
+}
+
+/** The /about page, as markdown. */
+export function aboutMarkdown(): string {
+  return [
+    `# About ${site.name}`,
+    '',
+    `> ${site.role} in ${site.location.city} with ${site.yearsExperience}+ years of professional experience.`,
+    '',
+    bullet([
+      `Currently at ${site.currentEmployer}, building the frontend of Mera Monitor, an enterprise fintech platform with ${headlineUsers} active users.`,
+      `Studied at ${site.education}.`,
+      `Speaks ${site.languages.join(' and ')}.`,
+      `Own products: ${projects
+        .filter((project) => project.kind === 'product')
+        .map((project) => `${project.name}${project.repo ? ` (${project.repo})` : ''}`)
+        .join(', ')}.`,
+    ]),
+    '',
+    bullet([
+      `LinkedIn: ${site.socials.linkedin}`,
+      `GitHub: ${site.socials.github}`,
+      `Developer portfolio: ${site.socials.portfolio}`,
+    ]),
     '',
   ].join('\n');
 }
@@ -233,9 +319,15 @@ export function llmsTxt(): string {
     '',
     bullet([
       `[Home](${siteUrl}/): services, work, process and contact details.`,
+      `[Services](${siteUrl}/services): what each service includes, who it suits and what it costs.`,
       `[Pricing](${siteUrl}/pricing): three fixed-price plans from ${site.startingPrice}, with what each includes.`,
+      `[About](${siteUrl}/about): who builds the work, experience and background.`,
       `[Blog](${siteUrl}/blog): guides on cost, choosing between a website and an app, and getting found on Google.`,
     ]),
+    '',
+    '## Services',
+    '',
+    bullet(services.map((service) => `[${service.title}](${siteUrl}/services/${service.id}): ${service.page.summary}`)),
     '',
     '## Articles',
     '',
@@ -257,6 +349,13 @@ export function llmsTxt(): string {
 export function llmsFullTxt(repos: ShippedRepo[] = []): string {
   return [
     homepageMarkdown(repos),
+    '',
+    '---',
+    '',
+    ...services.flatMap((service) => ['---', '', serviceMarkdown(service)]),
+    '---',
+    '',
+    aboutMarkdown(),
     '',
     '---',
     '',

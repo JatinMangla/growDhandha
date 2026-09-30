@@ -220,6 +220,13 @@ is used. Unset, no script loads at all.
 
 ## SEO and AI search
 
+**Strategy, pending work and procedures live in [`docs/SEO-PLAYBOOK.md`](docs/SEO-PLAYBOOK.md).** That
+includes the PageRank/topical-authority playbook, the backlink plan, the republish-under-a-new-URL
+steps, the content plan and a results log. In short, money pages (`/services/*`, `/pricing`) are
+linked from the header on every page and one hop from the homepage, and articles link to each other
+and to their service page in the text (`[anchor](/path)`). Tests keep every link and every page's
+title and description valid.
+
 Handled in-repo, nothing to configure:
 
 - Per-page `<title>` and meta description; exactly one `<h1>` per page.
@@ -308,7 +315,8 @@ that policy; the browser console names anything it blocks.
 | -------------------------------------- | -------- | -------------------------------------------------------- |
 | `NEXT_PUBLIC_SITE_URL`                 | yes      | The live URL, e.g. `https://grow-dhandha-three.vercel.app` — no trailing slash |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER`          | yes      | International format, digits only: `919540151718`        |
-| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no       | Google Search Console token                              |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | no       | Google Search Console token (works before a domain)       |
+| `NEXT_PUBLIC_BING_SITE_VERIFICATION`   | no       | Bing Webmaster Tools `msvalidate.01` token                |
 | `NEXT_PUBLIC_UMAMI_WEBSITE_ID`         | no       | Turns on conversion analytics (Production only)          |
 | `RESEND_API_KEY`, `CONTACT_TO_EMAIL`   | no       | Both set = contact-form enquiries are also emailed       |
 | `CONTACT_FROM_EMAIL`                   | no       | Sender on a Resend-verified domain                       |

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { seoTitle } from '@/lib/seo';
 import Link from 'next/link';
 import { ArrowUpRight, Check, MessageCircle } from 'lucide-react';
 import { ButtonLink } from '@/components/ui/Button';
@@ -14,8 +15,8 @@ import { cn } from '@/lib/utils';
 const TITLE = `Website and app pricing — from ${startingPrice}, no hidden charges`;
 
 export const metadata: Metadata = {
-  title: TITLE,
-  description: `Exactly what a website, mobile app or billing system costs: three fixed-price plans from ${startingPrice}, what each includes, what is genuinely extra, and how payment works.`,
+  title: seoTitle(TITLE),
+  description: `What a website, mobile app or billing system costs: three fixed-price plans from ${startingPrice}, what each includes, what is extra, and how payment works.`,
   keywords: [
     'website price India',
     'website cost Delhi',
@@ -45,7 +46,7 @@ function PricingJsonLd() {
         '@type': 'WebPage',
         '@id': `${url}#page`,
         url,
-        name: metadata.title,
+        name: TITLE,
         description: metadata.description,
         inLanguage: 'en-IN',
         isPartOf: { '@id': `${siteUrl}/#website` },

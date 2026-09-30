@@ -1,3 +1,4 @@
+import { RichText } from '@/components/ui/RichText';
 import type { PostBlock } from '@/types';
 
 /**
@@ -7,6 +8,7 @@ import type { PostBlock } from '@/types';
  * the page `h1` — extraction models follow heading order, and a jumbled
  * hierarchy is a common reason a passage is skipped. `qa` blocks render as a
  * definition list and are emitted separately as `FAQPage` structured data.
+ * Text supports `[anchor](/path)` internal links (see lib/rich-text.ts).
  */
 export function PostBody({ blocks }: { blocks: PostBlock[] }) {
   return (
@@ -23,7 +25,7 @@ export function PostBody({ blocks }: { blocks: PostBlock[] }) {
           case 'paragraph':
             return (
               <p key={index} className="text-base leading-relaxed text-muted">
-                {block.text}
+                <RichText text={block.text} />
               </p>
             );
 
@@ -43,7 +45,9 @@ export function PostBody({ blocks }: { blocks: PostBlock[] }) {
                     ) : (
                       <span aria-hidden="true" className="mt-2.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand" />
                     )}
-                    <span>{item}</span>
+                    <span>
+                      <RichText text={item} />
+                    </span>
                   </li>
                 ))}
               </List>
@@ -56,7 +60,7 @@ export function PostBody({ blocks }: { blocks: PostBlock[] }) {
                 key={index}
                 className="rounded-card border-l-2 border-brand bg-brand/5 py-4 pl-5 pr-4 text-base font-medium leading-relaxed text-fg"
               >
-                {block.text}
+                <RichText text={block.text} />
               </p>
             );
 
@@ -64,7 +68,9 @@ export function PostBody({ blocks }: { blocks: PostBlock[] }) {
             return (
               <dl key={index} className="flex flex-col gap-2 border-t border-line pt-6">
                 <dt className="font-display text-lg font-semibold text-fg">{block.question}</dt>
-                <dd className="text-base leading-relaxed text-muted">{block.answer}</dd>
+                <dd className="text-base leading-relaxed text-muted">
+                  <RichText text={block.answer} />
+                </dd>
               </dl>
             );
         }
