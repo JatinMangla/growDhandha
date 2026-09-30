@@ -2,7 +2,31 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 /** Every public HTML page. Keep in step with src/app when a page is added. */
-const PAGES = ['/', '/pricing', '/blog', '/blog/billing-software-vs-excel', '/privacy', '/hi'];
+const PAGES = [
+  '/',
+  '/hi',
+  '/services',
+  '/services/business-website',
+  '/services/inventory-billing',
+  '/pricing',
+  '/blog',
+  '/blog/billing-software-vs-excel',
+  '/about',
+  '/privacy',
+];
+
+/** Every indexable page, for the on-page SEO checks (cheap, so all of them). */
+const INDEXABLE = [
+  ...PAGES,
+  '/services/mobile-app',
+  '/services/crm',
+  '/services/custom-software',
+  '/services/ai-features',
+  '/blog/what-a-business-website-costs-in-india',
+  '/blog/website-or-mobile-app-which-first',
+  '/blog/get-your-business-on-google-free',
+  '/blog/questions-to-ask-a-web-developer',
+];
 
 const isMobile = (name: string) => name === 'mobile';
 
@@ -46,20 +70,64 @@ test.describe('every page', () => {
   }
 });
 
+test.describe('on-page SEO', () => {
+  test.beforeEach(({}, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'Server-rendered head; one device is enough.');
+  });
+
+  test('every page has a fitting title, a description, one h1, a self canonical, and is indexable', async ({ page }) => {
+    const titles = new Map<string, string>();
+    for (const path of INDEXABLE) {
+      await page.goto(path);
+      const title = await page.title();
+      const description = (await page.locator('meta[name="description"]').getAttribute('content')) ?? '';
+      const canonical = (await page.locator('link[rel="canonical"]').getAttribute('href')) ?? '';
+      const robots = (await page.locator('meta[name="robots"]').getAttribute('content')) ?? '';
+
+      // Past ~65 characters Google cuts the title off, and click-through suffers.
+      expect.soft(title.length, `${path} title: "${title}"`).toBeLessThanOrEqual(65);
+      expect.soft(description.length, `${path} description`).toBeGreaterThanOrEqual(70);
+      expect.soft(description.length, `${path} description`).toBeLessThanOrEqual(160);
+      expect.soft(await page.locator('h1').count(), `${path} h1 count`).toBe(1);
+      expect.soft(new URL(canonical).pathname, `${path} canonical`).toBe(path);
+      expect.soft(robots, `${path} robots`).not.toContain('noindex');
+
+      expect.soft(titles.get(title), `${path} duplicates the title of ${titles.get(title)}`).toBeUndefined();
+      titles.set(title, path);
+    }
+  });
+
+  test('money pages are one click from the homepage and from every page header', async ({ page }) => {
+    await page.goto('/');
+    for (const href of ['/services', '/pricing', '/blog']) {
+      await expect(page.locator(`header a[href="${href}"]`).first()).toBeAttached();
+    }
+    for (const id of ['business-website', 'mobile-app', 'crm', 'inventory-billing', 'custom-software', 'ai-features']) {
+      await expect(page.locator(`main a[href="/services/${id}"]`).first()).toBeAttached();
+    }
+  });
+
+  test('sitemap lists every indexable page', async ({ request }) => {
+    const xml = await (await request.get('/sitemap.xml')).text();
+    const paths = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => new URL(match[1] ?? '').pathname);
+    for (const path of INDEXABLE) expect(paths, path).toContain(path);
+  });
+});
+
 test.describe('navigation', () => {
   test('a section link from another page lands on that section', async ({ page }, testInfo) => {
     await page.goto('/blog');
 
     if (isMobile(testInfo.project.name)) {
       await page.getByRole('button', { name: 'Open menu' }).click();
-      await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: /Pricing/ }).click();
+      await page.getByRole('navigation', { name: 'Mobile' }).getByRole('link', { name: /Work/ }).click();
     } else {
-      await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Pricing' }).click();
+      await page.getByRole('navigation', { name: 'Primary' }).getByRole('link', { name: 'Work' }).click();
     }
 
-    await expect(page).toHaveURL(/\/#pricing$/);
-    await expect.poll(() => sectionTop(page, 'pricing')).toBeGreaterThanOrEqual(0);
-    await expect.poll(() => sectionTop(page, 'pricing')).toBeLessThan(160);
+    await expect(page).toHaveURL(/\/#work$/);
+    await expect.poll(() => sectionTop(page, 'work')).toBeGreaterThanOrEqual(0);
+    await expect.poll(() => sectionTop(page, 'work')).toBeLessThan(160);
   });
 
   test('a section link on the homepage scrolls in place, deep into deferred content', async ({ page }, testInfo) => {
@@ -190,6 +258,10 @@ test.describe('markdown for agents', () => {
 
     const post = await request.get('/blog/billing-software-vs-excel.md');
     expect((await post.text()).startsWith('# Billing software or an Excel sheet')).toBe(true);
+
+    const service = await request.get('/services/crm.md');
+    expect((await service.text()).startsWith('# Customer and enquiry management')).toBe(true);
+    expect((await (await request.get('/about.md')).text()).startsWith('# About')).toBe(true);
 
     expect((await request.get('/nope.md')).status()).toBe(404);
   });

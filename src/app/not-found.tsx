@@ -49,7 +49,7 @@ export default function NotFound() {
         <nav aria-label="Popular sections" className="flex flex-col gap-3 border-t border-line pt-7">
           <h2 className="eyebrow">Or jump straight to</h2>
           <ul className="flex flex-wrap gap-2">
-            {[...navLinks, { label: 'Blog', href: '/blog' }].map((link) => (
+            {navLinks.map((link) => (
               <li key={link.href}>
                 <Link
                   href={link.href}

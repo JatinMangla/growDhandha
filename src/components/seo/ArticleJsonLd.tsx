@@ -1,4 +1,5 @@
 import { site, siteUrl } from '@/data/site';
+import { plainText } from '@/lib/rich-text';
 import type { Post } from '@/types';
 
 type Schema = Record<string, unknown>;
@@ -26,7 +27,7 @@ function countWords(post: Post): number {
     }),
   ].join(' ');
 
-  return text.split(/\s+/).filter(Boolean).length;
+  return plainText(text).split(/\s+/).filter(Boolean).length;
 }
 
 /**
@@ -56,7 +57,7 @@ export function ArticleJsonLd({ post }: { post: Post }) {
     wordCount: countWords(post),
     keywords: post.tags.join(', '),
     articleSection: post.tags[0] ?? 'Guides',
-    author: { '@id': personId },
+    author: { '@id': personId, url: `${siteUrl}/about` },
     publisher: { '@id': businessId },
     image: `${siteUrl}/opengraph-image`,
     isAccessibleForFree: true,
@@ -83,7 +84,7 @@ export function ArticleJsonLd({ post }: { post: Post }) {
       mainEntity: questions.map((block) => ({
         '@type': 'Question',
         name: block.question,
-        acceptedAnswer: { '@type': 'Answer', text: block.answer },
+        acceptedAnswer: { '@type': 'Answer', text: plainText(block.answer) },
       })),
     });
   }

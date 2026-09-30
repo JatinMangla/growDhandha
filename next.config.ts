@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { redirects } from './src/data/redirects';
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -58,6 +59,10 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
+  /** Republished pages keep the links their old URLs earned (src/data/redirects.ts). */
+  async redirects() {
+    return redirects.map(({ from, to }) => ({ source: from, destination: to, permanent: true }));
+  },
   /**
    * Markdown representations: `/pricing.md`, `/blog/slug.md`, and `/index.md`
    * for the homepage. Static rewrites, so ordinary page views run no code.
@@ -67,6 +72,7 @@ const nextConfig: NextConfig = {
     return [
       { source: '/:page.md', destination: '/api/md/:page' },
       { source: '/blog/:slug.md', destination: '/api/md/blog/:slug' },
+      { source: '/services/:slug.md', destination: '/api/md/services/:slug' },
     ];
   },
 };

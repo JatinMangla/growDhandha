@@ -1,4 +1,8 @@
 import type { Post } from '@/types';
+import { tier } from './pricing';
+
+/** "₹39,999" — the custom tier's floor, from pricing.ts rather than typed here. */
+const customFrom = tier('custom').price.replace(/^From /, '');
 
 /**
  * The blog is the long-term organic and AI-citation strategy.
@@ -10,6 +14,11 @@ import type { Post } from '@/types';
  *
  * To publish a new article, append one object. The listing, the post page, the
  * sitemap entry, the metadata and the structured data all pick it up.
+ *
+ * Link generously but naturally with `[anchor](/path)`: to the service page a
+ * reader would want next, and to sibling articles on the same topic. Those
+ * contextual links are what turn separate posts into a topic cluster
+ * (docs/SEO-PLAYBOOK.md). A test fails if any link points at a missing page.
  */
 export const posts: Post[] = [
   {
@@ -43,7 +52,7 @@ export const posts: Post[] = [
         items: [
           '₹5,000 to ₹15,000 — one to eight pages that show what you sell, prove you are real, and let someone call or message you. Right for a shop, clinic, coaching centre or service provider getting online for the first time.',
           '₹15,000 to ₹40,000 — the above plus a catalogue people can search, and an admin panel so you can change prices and photos yourself without calling anyone.',
-          '₹40,000 and up — software rather than a website: billing, stock, customer records, staff logins, reports. The price rises because the logic does, not because there are more pages.',
+          '₹40,000 and up — software rather than a website: [billing and stock](/services/inventory-billing), [customer records](/services/crm), staff logins, reports. The price rises because the logic does, not because there are more pages.',
         ],
       },
       {
@@ -57,7 +66,7 @@ export const posts: Post[] = [
       },
       {
         kind: 'paragraph',
-        text: 'Nearly everything else you might be charged for is free or included. Hosting for a normal business website costs nothing on a professional platform. The padlock in the address bar — the SSL certificate — is free. Getting listed on Google is free.',
+        text: 'Nearly everything else you might be charged for is free or included. Hosting for a normal business website costs nothing on a professional platform. The padlock in the address bar — the SSL certificate — is free. Getting listed on Google is free — [here is how to do it yourself](/blog/get-your-business-on-google-free).',
       },
       { kind: 'heading', text: 'Charges that should make you ask questions' },
       {
@@ -77,7 +86,7 @@ export const posts: Post[] = [
       { kind: 'heading', text: 'How payment normally works' },
       {
         kind: 'paragraph',
-        text: 'Half to start and half on delivery is the standard arrangement for small projects, and it protects both sides: the developer is not building for free, and you are not paying in full for something you have not seen. Larger custom projects are usually split across milestones instead. Every payment should come with a proper invoice.',
+        text: 'Half to start and half on delivery is the standard arrangement for small projects, and it protects both sides: the developer is not building for free, and you are not paying in full for something you have not seen. Larger custom projects are usually split across milestones instead. Every payment should come with a proper invoice. For comparison, [here is exactly what my plans cost and include](/pricing), and [six questions worth asking any developer](/blog/questions-to-ask-a-web-developer) before you pay.',
       },
       {
         kind: 'qa',
@@ -123,7 +132,7 @@ export const posts: Post[] = [
       },
       {
         kind: 'paragraph',
-        text: 'If you want to be found by people who do not know you yet, that is a website. If you want to be used repeatedly by people who already know you, that may be an app.',
+        text: 'If you want to be found by people who do not know you yet, that is a [business website](/services/business-website). If you want to be used repeatedly by people who already know you, that may be a [mobile app](/services/mobile-app).',
       },
       { kind: 'heading', text: 'When a website is the right answer' },
       {
@@ -161,7 +170,7 @@ export const posts: Post[] = [
       { kind: 'heading', text: 'The sequence that usually works' },
       {
         kind: 'paragraph',
-        text: 'Start with the website, because it is cheaper and it is what brings you strangers. Watch what people actually do with it. If you find the same customers returning again and again, and doing something repetitive that a phone could make faster, you now have evidence for what the app should do — instead of guessing before you had any.',
+        text: 'Start with the website — [here is what one should cost](/blog/what-a-business-website-costs-in-india) — because it is cheaper and it is what brings you strangers. Watch what people actually do with it. If you find the same customers returning again and again, and doing something repetitive that a phone could make faster, you now have evidence for what the app should do — instead of guessing before you had any.',
       },
       {
         kind: 'qa',
@@ -250,7 +259,7 @@ export const posts: Post[] = [
       { kind: 'heading', text: 'Where a website fits' },
       {
         kind: 'paragraph',
-        text: 'The listing gets you found. The website is what convinces someone to choose you once they have found you — it holds your prices, your work, and enough detail to build confidence. They work best together: the listing brings the visitor, the website closes them.',
+        text: 'The listing gets you found. The [website](/services/business-website) is what convinces someone to choose you once they have found you — it holds your prices, your work, and enough detail to build confidence. They work best together: the listing brings the visitor, the website closes them. If you are budgeting for one, [this is what a business website should cost](/blog/what-a-business-website-costs-in-india).',
       },
       {
         kind: 'qa',
@@ -301,7 +310,7 @@ export const posts: Post[] = [
       },
       {
         kind: 'paragraph',
-        text: 'If all four are true, keep the spreadsheet and spend the money elsewhere. A website will do more for you than billing software will.',
+        text: 'If all four are true, keep the spreadsheet and spend the money elsewhere. A [website](/services/business-website) will do more for you than billing software will.',
       },
       { kind: 'heading', text: 'The signals that you have outgrown it' },
       {
@@ -337,7 +346,7 @@ export const posts: Post[] = [
       },
       {
         kind: 'paragraph',
-        text: 'Custom becomes worth it when you would otherwise have to change how your business works to suit the software, when the per-user licence cost grows faster than your team, or when you need it to connect to something you already use. Custom systems start around ₹39,999 and take four to ten weeks, so the honest test is whether the hours it saves each month justify that.',
+        text: `[Custom software](/services/custom-software) becomes worth it when you would otherwise have to change how your business works to suit the software, when the per-user licence cost grows faster than your team, or when you need it to connect to something you already use. [Custom billing and stock systems](/services/inventory-billing) start around ${customFrom} and take four to ten weeks, so the honest test is whether the hours it saves each month justify that.`,
       },
       {
         kind: 'qa',
@@ -378,7 +387,7 @@ export const posts: Post[] = [
       { kind: 'heading', text: '2. What exactly does the price cover, in writing?' },
       {
         kind: 'paragraph',
-        text: 'You want a document listing the pages, the features and the final number. Not an estimate, not a range. Once you approve it the price should not change unless you ask for something new, and then you should approve that cost before it is built.',
+        text: 'You want a document listing the pages, the features and the final number. Not an estimate, not a range. Once you approve it the price should not change unless you ask for something new, and then you should approve that cost before it is built. For comparison, [here is what each of my plans covers](/pricing).',
       },
       { kind: 'heading', text: '3. What happens after it goes live?' },
       {
@@ -407,7 +416,7 @@ export const posts: Post[] = [
       { kind: 'heading', text: 'One question to ask yourself' },
       {
         kind: 'paragraph',
-        text: 'Ask what you want this website to actually do. "Look professional" is hard to deliver against. "Let customers see prices and message me on WhatsApp" is something you can check on launch day, and something a developer can quote accurately.',
+        text: 'Ask what you want this website to actually do. "Look professional" is hard to deliver against. "Let customers see prices and message me on WhatsApp" is something you can check on launch day, and something a developer can quote accurately. For most shops and service businesses, that describes [a simple business website](/services/business-website).',
       },
       {
         kind: 'qa',

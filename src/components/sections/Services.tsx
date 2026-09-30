@@ -1,4 +1,5 @@
-import { ArrowUpRight, Check } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowRight, ArrowUpRight, Check } from 'lucide-react';
 import { CardFx } from '@/components/ui/PointerFX';
 import { Reveal } from '@/components/ui/Reveal';
 import { SectionHeading } from '@/components/ui/SectionHeading';
@@ -42,11 +43,22 @@ export function Services() {
                     ))}
                   </ul>
 
+                  {/* One hop from the homepage to each service's own page. */}
+                  <Link
+                    href={`/services/${service.id}`}
+                    prefetch={false}
+                    className="tap-target inline-flex items-center gap-1.5 py-1 text-sm font-semibold text-brand-ink transition-colors hover:text-fg"
+                  >
+                    What it includes and costs
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    <span className="sr-only"> — {service.title}</span>
+                  </Link>
+
                   <a
                     href={whatsappLink(`Hi Jatin, I want to know more about: ${service.title}.`)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="tap-target inline-flex items-center gap-1.5 py-2 text-sm font-semibold text-fg transition-colors hover:text-brand-ink"
+                    className="tap-target -mt-3 inline-flex items-center gap-1.5 py-1 text-sm font-semibold text-fg transition-colors hover:text-brand-ink"
                   >
                     Ask about {service.title.toLowerCase()}
                     <ArrowUpRight

@@ -87,9 +87,14 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
-    ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
-    : undefined,
+  // Meta-tag verification works on the vercel.app address too, so Search
+  // Console and Bing Webmaster Tools can be set up before a domain exists.
+  verification: {
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || undefined,
+    other: process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION
+      ? { 'msvalidate.01': process.env.NEXT_PUBLIC_BING_SITE_VERIFICATION }
+      : undefined,
+  },
   formatDetection: {
     telephone: true,
     address: false,

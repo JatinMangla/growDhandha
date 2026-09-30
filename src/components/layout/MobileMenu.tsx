@@ -80,18 +80,6 @@ export function MobileMenu({ open, onNavigate }: MobileMenuProps) {
                 </m.a>
               ))}
 
-              <m.a
-                variants={item}
-                href="/blog"
-                onClick={onNavigate}
-                className="tap-target flex items-center justify-between rounded-soft px-3 py-3.5 text-base text-fg transition-colors hover:bg-sunken"
-              >
-                Blog
-                <span aria-hidden="true" className="font-mono text-xs text-subtle">
-                  /blog
-                </span>
-              </m.a>
-
               <m.div variants={item} className="mt-3 grid gap-2 pb-2">
                 <ButtonLink
                   href={whatsappLink(defaultEnquiry)}

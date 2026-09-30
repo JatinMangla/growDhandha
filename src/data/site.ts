@@ -77,7 +77,7 @@ export function whatsappLink(message: string): string {
  * that always says everything is new, which costs credibility on exactly the
  * freshness signal we want to be trusted on.
  */
-export const contentUpdatedAt = '2026-09-24';
+export const contentUpdatedAt = '2026-09-30';
 
 /** When /privacy last changed in substance — bump it when the practices do. */
 export const privacyUpdatedAt = '2026-09-24';
@@ -86,15 +86,19 @@ export const defaultEnquiry =
   'Hi Jatin, I saw your website. I want to discuss a project for my business.';
 
 /**
- * Section links are root-relative (`/#pricing`, not `#pricing`) so they work
- * from every page. A bare hash on /blog points at an element that does not
- * exist there, and the click silently did nothing. On the homepage itself
- * `AnchorScroll` intercepts them and scrolls in place without a reload.
+ * The header nav, on every page — which makes it the strongest internal link
+ * on the site. So the money pages (/services, /pricing) and the content hub
+ * (/blog) get real page links here, not homepage anchors: every page then
+ * passes authority to them directly (docs/SEO-PLAYBOOK.md, "PageRank").
+ *
+ * Section links are root-relative (`/#work`, not `#work`) so they work from
+ * every page; on the homepage `AnchorScroll` scrolls to them in place.
  */
 export const navLinks: NavLink[] = [
-  { label: 'Services', href: '/#services' },
+  { label: 'Services', href: '/services' },
   { label: 'Work', href: '/#work' },
-  { label: 'Pricing', href: '/#pricing' },
+  { label: 'Pricing', href: '/pricing' },
   { label: 'Process', href: '/#process' },
+  { label: 'Blog', href: '/blog' },
   { label: 'FAQ', href: '/#faq' },
 ];
